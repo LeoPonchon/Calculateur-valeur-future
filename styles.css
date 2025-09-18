@@ -1,0 +1,331 @@
+:root {
+    --bg: #0f172a;
+    --panel: #111827;
+    --text: #e5e7eb;
+    --muted: #9ca3af;
+    --primary: #22c55e;
+    --primary-600: #16a34a;
+    --error: #ef4444;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+}
+
+.page-title {
+    text-align: center;
+    margin: 16px 0 0 0;
+    color: var(--text);
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.container {
+    max-width: 720px;
+    margin: 40px auto;
+    padding: 24px;
+    background: var(--panel);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+h1 {
+    margin: 0 0 16px 0;
+    font-size: 22px;
+}
+
+p.note {
+    margin: 0 0 24px 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 14px;
+}
+
+input[type="number"],
+select {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #374151;
+    background: #0b1220;
+    color: var(--text);
+}
+
+.actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.btn-small {
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+button {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+button.primary {
+    background: var(--primary);
+    color: #052e16;
+}
+
+button.primary:hover {
+    background: var(--primary-600);
+}
+
+button.secondary {
+    background: transparent;
+    border-color: #374151;
+    color: var(--text);
+}
+
+.resultat {
+    margin-top: 20px;
+    padding-top: 12px;
+    border-top: 1px dashed #374151;
+    font-size: 18px;
+}
+
+.example {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.section {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px dashed #374151;
+}
+
+h2 {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+}
+
+.subnote {
+    margin: 0 0 12px 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+/* Badges (indicateurs de source) */
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+.badge.live {
+    background: rgba(34, 197, 94, 0.12);
+    color: #22c55e;
+    border-color: rgba(34, 197, 94, 0.35);
+}
+
+.badge.avg {
+    background: rgba(59, 130, 246, 0.12);
+    color: #60a5fa;
+    border-color: rgba(59, 130, 246, 0.35);
+}
+
+.badge.static {
+    background: rgba(148, 163, 184, 0.16);
+    color: #94a3b8;
+    border-color: rgba(148, 163, 184, 0.35);
+}
+
+/* Courbe de croissance */
+#chart-site svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: transparent;
+}
+
+.indices-controls {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #0b1220;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+thead th {
+    text-align: left;
+    background: #0e1526;
+    border-bottom: 1px solid #374151;
+    padding: 10px 12px;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 13px;
+}
+
+tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #1f2937;
+    font-size: 14px;
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+@media(max-width:640px) {
+    form {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Rapport imprimable (écran: caché) */
+.rapport {
+    display: none;
+    background: #ffffff;
+    color: #111827;
+    font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+}
+
+.rapport .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+}
+
+.rapport h1 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.rapport .sub {
+    margin: 0;
+    color: #4b5563;
+    font-size: 11px;
+}
+
+.rapport .section {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 8px;
+    margin-top: 8px;
+}
+
+.rapport h2 {
+    font-size: 13px;
+    margin: 4px 0 4px 0;
+}
+
+.rapport table {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    overflow: hidden;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.rapport thead th {
+    background: #f3f4f6;
+    color: #111827;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 4px 6px;
+    font-size: 10px;
+    text-align: left;
+}
+
+.rapport tbody td {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 4px 6px;
+    font-size: 10px;
+}
+
+.rapport thead th:first-child,
+.rapport tbody td:first-child {
+    width: 62%;
+    color: #374151;
+}
+
+.rapport thead th:last-child,
+.rapport tbody td:last-child {
+    width: 38%;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.rapport tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.rapport tbody tr:last-child td {
+    border-bottom: none;
+}
+
+@media print {
+    @page {
+        size: A4;
+        margin: 12mm;
+    }
+
+    html,
+    body {
+        background: #ffffff;
+        color: #111827;
+    }
+
+    body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* N'imprimer que le rapport */
+    .container {
+        display: none !important;
+    }
+
+    .page-title {
+        display: none !important;
+    }
+
+    #rapport {
+        display: block !important;
+    }
+
+    #rapport svg {
+        width: 100%;
+        height: auto;
+    }
+}
