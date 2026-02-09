@@ -1,4 +1,4 @@
-/* Simulateur PEA - CSS Simplifié */
+/* Simulateur PEA - CSS Responsive */
 
 :root {
     --bg: #0a0e1a;
@@ -6,6 +6,8 @@
     --text: #f9fafb;
     --accent: #3b82f6;
     --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
 }
 
 * {
@@ -15,13 +17,16 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+        Cantarell, sans-serif;
     background: var(--bg);
     color: var(--text);
     display: flex;
     justify-content: center;
     min-height: 100vh;
     padding: 20px;
+    line-height: 1.6;
 }
 
 .container {
@@ -30,13 +35,15 @@ body {
     border-radius: 10px;
     max-width: 900px;
     width: 100%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 h1 {
     text-align: center;
     margin-bottom: 30px;
     color: var(--accent);
-    font-size: 28px;
+    font-size: clamp(24px, 5vw, 32px);
+    font-weight: 700;
 }
 
 .form-group {
@@ -45,82 +52,150 @@ h1 {
 
 label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     font-size: 14px;
     font-weight: 500;
+    color: var(--text);
 }
 
 input {
     width: 100%;
-    padding: 12px;
+    padding: 14px 16px;
     border: 1px solid #374151;
-    border-radius: 5px;
+    border-radius: 8px;
     background: #374151;
     color: white;
     font-size: 16px;
-    transition: border-color 0.3s;
+    transition: all 0.3s ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
 }
 
 input:focus {
     outline: none;
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+input::placeholder {
+    color: #9ca3af;
+}
+
+/* Amélioration pour les inputs numériques sur mobile */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .result {
     margin-top: 30px;
-    padding: 20px;
-    background: #374151;
-    border-radius: 5px;
+    padding: 24px;
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+    border-radius: 8px;
     text-align: center;
+    border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
 .result h2 {
     font-size: 16px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     color: var(--text);
+    font-weight: 600;
 }
 
 .result p {
-    font-size: 28px;
+    font-size: clamp(20px, 4vw, 28px);
     font-weight: bold;
     color: var(--success);
     white-space: pre-line;
-    line-height: 1.4;
+    line-height: 1.5;
 }
 
 .chart-container {
     margin-top: 30px;
     background: #374151;
     padding: 20px;
-    border-radius: 5px;
+    border-radius: 8px;
     position: relative;
     height: 450px;
+    overflow: hidden;
 }
 
 #chart {
     width: 100% !important;
     height: 100% !important;
+    max-height: 100%;
 }
 
 .table-container {
     margin-top: 30px;
     background: #374151;
     padding: 20px;
-    border-radius: 5px;
+    border-radius: 8px;
     max-height: 400px;
     overflow-y: auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .table-container h3 {
     color: var(--text);
     margin-bottom: 15px;
     font-size: 18px;
+    font-weight: 600;
+}
+
+/* Scrollbar personnalisée pour le tableau */
+.table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.5);
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.7);
 }
 
 #yearly-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
+    min-width: 800px;
+}
+
+/* Styles pour les sections du formulaire */
+.form-section {
+    background: rgba(31, 41, 55, 0.5);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.section-title {
+    color: var(--accent);
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 #yearly-table thead {
@@ -131,58 +206,262 @@ input:focus {
 }
 
 #yearly-table th {
-    padding: 12px 8px;
+    padding: 12px 10px;
     text-align: left;
     color: var(--text);
     font-weight: 600;
     border-bottom: 2px solid var(--accent);
+    font-size: 13px;
+    white-space: nowrap;
 }
 
 #yearly-table td {
-    padding: 10px 8px;
+    padding: 12px 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 13px;
 }
 
 #yearly-table tbody tr:hover {
     background: rgba(59, 130, 246, 0.1);
 }
 
+#yearly-table tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+}
+
 .phase-accumulation {
     background: rgba(16, 185, 129, 0.2);
     color: #10b981;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
     font-weight: 600;
+    display: inline-block;
 }
 
 .phase-retirement {
     background: rgba(59, 130, 246, 0.2);
     color: #3b82f6;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
     font-weight: 600;
+    display: inline-block;
 }
 
-#yearly-table tbody tr:nth-child(even) {
-    background: rgba(255, 255, 255, 0.02);
-}
-
+/* Responsive Design - Tablettes (768px et moins) */
 @media (max-width: 768px) {
     .container {
-        padding: 20px;
+        padding: 24px 20px;
+        border-radius: 0;
+        min-height: 100vh;
+    }
+
+    body {
+        padding: 0;
     }
 
     .chart-container {
         height: 350px;
+        padding: 16px;
+    }
+
+    .table-container {
+        padding: 16px;
+        max-height: 350px;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    label {
+        font-size: 13px;
+    }
+
+    input {
+        padding: 12px 14px;
+        font-size: 16px;
+    }
+
+    .result {
+        padding: 20px 16px;
+    }
+
+    .result h2 {
+        font-size: 15px;
+    }
+}
+
+/* Responsive Design - Mobiles (480px et moins) */
+@media (max-width: 480px) {
+    .section-title {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .container {
+        padding: 20px 16px;
     }
 
     h1 {
-        font-size: 24px;
+        margin-bottom: 24px;
     }
 
-    .result p {
-        font-size: 22px;
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .chart-container {
+        height: 300px;
+        padding: 12px;
+        margin-top: 24px;
+    }
+
+    .table-container {
+        padding: 12px;
+        margin-top: 24px;
+        max-height: 300px;
+    }
+
+    .table-container h3 {
+        font-size: 16px;
+        margin-bottom: 12px;
+    }
+
+    #yearly-table {
+        font-size: 11px;
+        min-width: 650px;
+    }
+
+    #yearly-table th {
+        padding: 10px 8px;
+        font-size: 11px;
+    }
+
+    #yearly-table td {
+        padding: 10px 8px;
+        font-size: 11px;
+    }
+
+    .phase-accumulation,
+    .phase-retirement {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+
+    .result {
+        margin-top: 24px;
+        padding: 18px 14px;
+    }
+
+    .result h2 {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    input {
+        padding: 12px;
+        font-size: 16px;
+    }
+
+    /* Amélioration du touch sur mobile */
+    input {
+        touch-action: manipulation;
+    }
+}
+
+/* Responsive Design - Grands écrans (1200px et plus) */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1100px;
+        padding: 50px;
+    }
+
+    h1 {
+        font-size: 32px;
+        margin-bottom: 40px;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    label {
+        font-size: 15px;
+    }
+
+    input {
+        padding: 16px;
+        font-size: 16px;
+    }
+
+    .chart-container {
+        height: 500px;
+        padding: 24px;
+    }
+
+    .table-container {
+        padding: 24px;
+        max-height: 450px;
+    }
+
+    .result {
+        padding: 28px;
+    }
+
+    .result h2 {
+        font-size: 18px;
+    }
+}
+
+/* Amélioration de l'accessibilité */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Mode sombre/clair (si supporté par le navigateur) */
+/* Styles pour les colonnes immobilières */
+#yearly-table th:nth-child(6),
+#yearly-table th:nth-child(7),
+#yearly-table th:nth-child(8) {
+    background: rgba(245, 158, 11, 0.1);
+    border-left: 2px solid rgba(245, 158, 11, 0.3);
+}
+
+#yearly-table td:nth-child(6),
+#yearly-table td:nth-child(7),
+#yearly-table td:nth-child(8) {
+    border-left: 2px solid rgba(245, 158, 11, 0.2);
+}
+
+/* Amélioration de l'affichage du total financier */
+#yearly-table td:nth-child(5) {
+    font-weight: 600;
+    background: rgba(139, 92, 246, 0.1);
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --bg: #f3f4f6;
+        --card: #ffffff;
+        --text: #1f2937;
+    }
+
+    input {
+        background: #f9fafb;
+        color: #1f2937;
+        border-color: #d1d5db;
+    }
+
+    input:focus {
+        border-color: var(--accent);
+    }
+
+    #yearly-table thead {
+        background: #ffffff;
     }
 }

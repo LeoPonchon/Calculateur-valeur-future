@@ -3,84 +3,210 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Simulateur PEA</title>
+        <title>Simulateur PEA + Compte Titres</title>
         <link rel="stylesheet" href="css/style.css" />
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     </head>
     <body>
         <div class="container">
-            <h1>Simulateur PEA</h1>
+            <h1>Simulateur PEA + Compte Titres</h1>
 
-            <div class="form-group">
-                <label>Versement initial (€)</label>
-                <input type="number" id="initial" placeholder="Ex: 10000" />
+            <!-- Section PEA -->
+            <div class="form-section">
+                <h2 class="section-title">Paramètres PEA</h2>
+
+                <div class="form-group">
+                    <label>Versement initial (€)</label>
+                    <input type="number" id="initial" placeholder="Ex: 10000" />
+                </div>
+
+                <div class="form-group">
+                    <label>Versement annuel (€)</label>
+                    <input
+                        type="number"
+                        id="annual-contribution"
+                        placeholder="Ex: 6000"
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label>Années de versement</label>
+                    <input
+                        type="number"
+                        id="contributing-years"
+                        placeholder="Ex: 20"
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label>Âge actuel</label>
+                    <input
+                        type="number"
+                        id="starting-age"
+                        placeholder="Ex: 30"
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label>Rendement annuel (%)</label>
+                    <input
+                        type="number"
+                        id="return"
+                        placeholder="Ex: 7"
+                        step="0.1"
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label>Retrait annuel (€)</label>
+                    <input
+                        type="number"
+                        id="annual-withdrawal"
+                        placeholder="Ex: 12000"
+                    />
+                </div>
             </div>
 
-            <div class="form-group">
-                <label>Versement annuel (€)</label>
-                <input
-                    type="number"
-                    id="annual-contribution"
-                    placeholder="Ex: 6000"
-                />
+            <!-- Section Compte Titres -->
+            <div class="form-section">
+                <h2 class="section-title">
+                    Compte Titres (automatique après PEA)
+                </h2>
+
+                <p style="color: #9ca3af; font-size: 14px; margin: 0 0 15px 0">
+                    Une fois le plafond PEA atteint ou les versements terminés,
+                    vos versements continueront automatiquement sur le Compte
+                    Titres sans plafond de 150 000€.
+                </p>
+
+                <div class="form-group">
+                    <label>Rendement annuel Compte Titres (%)</label>
+                    <input
+                        type="number"
+                        id="ct-return"
+                        placeholder="Ex: 7"
+                        step="0.1"
+                        value="7"
+                    />
+                </div>
             </div>
 
-            <div class="form-group">
-                <label>Années de versement</label>
-                <input
-                    type="number"
-                    id="contributing-years"
-                    placeholder="Ex: 20"
-                />
+            <!-- Section Taux d'imposition -->
+            <div class="form-section">
+                <h2 class="section-title">📊 Taux d'imposition appliqués</h2>
+
+                <div
+                    style="
+                        display: grid;
+                        grid-template-columns: repeat(
+                            auto-fit,
+                            minmax(250px, 1fr)
+                        );
+                        gap: 20px;
+                    "
+                >
+                    <div
+                        style="
+                            background: rgba(59, 130, 246, 0.1);
+                            padding: 15px;
+                            border-radius: 8px;
+                            border-left: 4px solid #3b82f6;
+                        "
+                    >
+                        <h4
+                            style="
+                                color: #3b82f6;
+                                margin: 0 0 10px 0;
+                                font-size: 16px;
+                            "
+                        >
+                            💼 PEA (après 5 ans)
+                        </h4>
+                        <p
+                            style="
+                                color: #d1d5db;
+                                margin: 5px 0;
+                                font-size: 14px;
+                            "
+                        >
+                            <strong>Imposition au retrait : 17.2%</strong>
+                        </p>
+                        <p
+                            style="
+                                color: #9ca3af;
+                                margin: 5px 0;
+                                font-size: 13px;
+                            "
+                        >
+                            • <strong>Pas d'impôt pendant la détention</strong
+                            ><br />
+                            • 17.2% Prélèvements sociaux au retrait<br />
+                            • 0% Impôt sur le revenu (exonéré)<br />
+                            • Uniquement sur la part de plus-value
+                        </p>
+                    </div>
+
+                    <div
+                        style="
+                            background: rgba(6, 182, 212, 0.1);
+                            padding: 15px;
+                            border-radius: 8px;
+                            border-left: 4px solid #06b6d4;
+                        "
+                    >
+                        <h4
+                            style="
+                                color: #06b6d4;
+                                margin: 0 0 10px 0;
+                                font-size: 16px;
+                            "
+                        >
+                            📈 Compte Titres
+                        </h4>
+                        <p
+                            style="
+                                color: #d1d5db;
+                                margin: 5px 0;
+                                font-size: 14px;
+                            "
+                        >
+                            <strong>Imposition au retrait : 30%</strong>
+                        </p>
+                        <p
+                            style="
+                                color: #9ca3af;
+                                margin: 5px 0;
+                                font-size: 13px;
+                            "
+                        >
+                            • <strong>Pas d'impôt pendant la détention</strong
+                            ><br />
+                            • 30% Flat tax au retrait (17.2% + 12.8%)<br />
+                            • Uniquement sur la part de plus-value<br />
+                            • Option barème progressif possible
+                        </p>
+                    </div>
+                </div>
+
+                <p
+                    style="
+                        color: #9ca3af;
+                        font-size: 13px;
+                        margin: 15px 0 0 0;
+                        text-align: center;
+                    "
+                >
+                    ⚠️ Les montants affichés sont
+                    <strong>bruts (avant impôts)</strong>. L'imposition (17.2%
+                    PEA / 30% CT) est appliquée uniquement sur les plus-values
+                    au moment des retraits.
+                </p>
             </div>
 
-            <div class="form-group">
-                <label>Âge actuel</label>
-                <input type="number" id="starting-age" placeholder="Ex: 30" />
-            </div>
-
-            <div class="form-group">
-                <label>Rendement annuel (%)</label>
-                <input
-                    type="number"
-                    id="return"
-                    placeholder="Ex: 7"
-                    step="0.1"
-                />
-            </div>
-
-            <div class="form-group">
-                <label>Retrait annuel (€)</label>
-                <input
-                    type="number"
-                    id="annual-withdrawal"
-                    placeholder="Ex: 12000"
-                />
-            </div>
-
+            <!-- Résultats -->
             <div class="result">
                 <h2>Valeur à la retraite</h2>
                 <p id="result">0 €</p>
-            </div>
-
-            <div class="table-container">
-                <h3>Détails année par année</h3>
-                <table id="yearly-table">
-                    <thead>
-                        <tr>
-                            <th>Âge</th>
-                            <th>Phase</th>
-                            <th>Valeur PEA</th>
-                            <th>Total versé</th>
-                            <th>Versement réel</th>
-                            <th>Gain annuel</th>
-                            <th>Gain cumulé</th>
-                        </tr>
-                    </thead>
-                    <tbody id="yearly-data">
-                        <!-- Les données seront insérées ici par JavaScript -->
-                    </tbody>
-                </table>
             </div>
 
             <div
@@ -96,6 +222,29 @@
                 "
             ></div>
 
+            <!-- Tableau -->
+            <div class="table-container">
+                <h3>Détails année par année</h3>
+                <table id="yearly-table">
+                    <thead>
+                        <tr>
+                            <th>Âge</th>
+                            <th>Phase</th>
+                            <th>Valeur PEA</th>
+                            <th>Valeur CT</th>
+                            <th>Total financier</th>
+                            <th>Total versé PEA</th>
+                            <th>Total versé CT</th>
+                            <th>Versement réel PEA</th>
+                            <th>Gain annuel</th>
+                            <th>Gain cumulé</th>
+                        </tr>
+                    </thead>
+                    <tbody id="yearly-data"></tbody>
+                </table>
+            </div>
+
+            <!-- Graphique -->
             <div class="chart-container">
                 <canvas id="chart"></canvas>
             </div>
