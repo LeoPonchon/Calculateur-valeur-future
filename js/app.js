@@ -274,8 +274,10 @@ function calculate() {
   // Afficher la courbe
   displayChart(yearlyData);
 
-  // Afficher le tableau
-  displayTable(yearlyData);
+  // Afficher les trois tableaux
+  displayPEATable(yearlyData);
+  displayCTOTable(yearlyData);
+  displayWithdrawalsTable(yearlyData);
 }
 
 function displayChart(yearlyData) {
@@ -398,71 +400,127 @@ function formatMoney(amount) {
   });
 }
 
-function displayTable(yearlyData) {
-  const tbody = document.getElementById("yearly-data");
+function displayPEATable(yearlyData) {
+  const tbody = document.getElementById("pea-data");
   tbody.innerHTML = "";
 
   yearlyData.forEach((data, index) => {
     const row = document.createElement("tr");
 
-    // Calculer le gain annuel NET d'impôts (variation de la valeur hors nouveaux versements)
+    // Calculer le gain annuel PEA (variation de la valeur hors nouveaux versements)
     let yearlyGainPEA = 0;
-    let yearlyGainCT = 0;
     if (index === 0) {
-      // Première année : gain = balance - (versement initial + versement annuel)
       yearlyGainPEA = data.balance - data.contributed;
-      yearlyGainCT = data.ctBalance - data.ctContributed;
     } else {
-      // Années suivantes : gain = (balance - précédent) - (versé - précédent)
       const previousData = yearlyData[index - 1];
       const balanceChange = data.balance - previousData.balance;
       const contributionChange = data.contributed - previousData.contributed;
       yearlyGainPEA = balanceChange - contributionChange;
-
-      const ctBalanceChange = data.ctBalance - previousData.ctBalance;
-      const ctContributionChange =
-        data.ctContributed - previousData.ctContributed;
-      yearlyGainCT = ctBalanceChange - ctContributionChange;
     }
 
-    const totalYearlyGain = yearlyGainPEA + yearlyGainCT;
-
-    // Calculer le gain cumulé NET d'impôts
+    // Calculer le gain cumulé PEA
     const totalGainPEA = data.balance - data.contributed;
-    const totalGainCT = data.ctBalance - data.ctContributed;
-    const totalGain = totalGainPEA + totalGainCT;
 
-    // Ajouter une classe pour la phase
+    // Classe pour la phase
     const phaseClass =
       data.phase === "Accumulation" ? "phase-accumulation" : "phase-retirement";
 
-    // Affichage Compte Titres
-    let ctText = data.ctBalance > 0 ? formatMoney(data.ctBalance) + " €" : "-";
-    let ctContributedText =
-      data.ctContributed > 0 ? formatMoney(data.ctContributed) + " €" : "-";
-
-    // Classes pour les gains (positif/négatif) - SEULES couleurs gardées
-    const yearlyGainClass =
-      totalYearlyGain >= 0 ? "text-success" : "text-danger";
-    const totalGainClass = totalGain >= 0 ? "text-success" : "text-danger";
-    const yearlyGainSign = totalYearlyGain >= 0 ? "+" : "";
-    const totalGainSign = totalGain >= 0 ? "+" : "";
+    // Classes pour les gains
+    const yearlyGainClass = yearlyGainPEA >= 0 ? "text-success" : "text-danger";
+    const totalGainClass = totalGainPEA >= 0 ? "text-success" : "text-danger";
+    const yearlyGainSign = yearlyGainPEA >= 0 ? "+" : "";
+    const totalGainSign = totalGainPEA >= 0 ? "+" : "";
 
     row.innerHTML = `
-            <td>${data.age} ans</td>
-            <td><span class="${phaseClass}">${data.phase}</span></td>
-            <td>${formatMoney(data.balance)} €</td>
-            <td>${data.actualContribution > 0 ? formatMoney(data.actualContribution) + " €" : "-"}</td>
-            <td>${formatMoney(data.contributed)} €</td>
-            <td>${ctText}</td>
-            <td>${data.ctContribution > 0 ? formatMoney(data.ctContribution) + " €" : "-"}</td>
-            <td>${ctContributedText}</td>
-            <td class="${yearlyGainClass}">${yearlyGainSign}${formatMoney(totalYearlyGain)} €</td>
-            <td class="${totalGainClass}">${totalGainSign}${formatMoney(totalGain)} €</td>
-            <td>${formatMoney(data.totalFinancial)} €</td>
-        `;
+      <td>${data.age} ans</td>
+      <td><span class="${phaseClass}">${data.phase}</span></td>
+      <td>${formatMoney(data.balance)} €</td>
+      <td>${data.actualContribution > 0 ? formatMoney(data.actualContribution) + " €" : "-"}</td>
+      <td>${formatMoney(data.contributed)} €</td>
+      <td class="${yearlyGainClass}">${yearlyGainSign}${formatMoney(yearlyGainPEA)} €</td>
+      <td class="${totalGainClass}">${totalGainSign}${formatMoney(totalGainPEA)} €</td>
+    `;
 
     tbody.appendChild(row);
+  });
+}
+
+function displayCTOTable(yearlyData) {
+  const tbody = document.getElementById("cto-data");
+  tbody.innerHTML = "";
+
+  yearlyData.forEach((data, index) => {
+    const row = document.createElement("tr");
+
+    // Calculer le gain annuel CT (variation de la valeur hors nouveaux versements)
+    let yearlyGainCT = 0;
+    if (index === 0) {
+      yearlyGainCT = data.ctBalance - data.ctContributed;
+    } else {
+      const previousData = yearlyData[index - 1];
+      const balanceChange = data.ctBalance - previousData.ctBalance;
+      const contributionChange =
+        data.ctContributed - previousData.ctContributed;
+      yearlyGainCT = balanceChange - contributionChange;
+    }
+
+    // Calculer le gain cumulé CT
+    const totalGainCT = data.ctBalance - data.ctContributed;
+
+    // Classe pour la phase
+    const phaseClass =
+      data.phase === "Accumulation" ? "phase-accumulation" : "phase-retirement";
+
+    // Classes pour les gains
+    const yearlyGainClass = yearlyGainCT >= 0 ? "text-success" : "text-danger";
+    const totalGainClass = totalGainCT >= 0 ? "text-success" : "text-danger";
+    const yearlyGainSign = yearlyGainCT >= 0 ? "+" : "";
+    const totalGainSign = totalGainCT >= 0 ? "+" : "";
+
+    row.innerHTML = `
+      <td>${data.age} ans</td>
+      <td><span class="${phaseClass}">${data.phase}</span></td>
+      <td>${data.ctBalance > 0 ? formatMoney(data.ctBalance) + " €" : "-"}</td>
+      <td>${data.ctContribution > 0 ? formatMoney(data.ctContribution) + " €" : "-"}</td>
+      <td>${data.ctContributed > 0 ? formatMoney(data.ctContributed) + " €" : "-"}</td>
+      <td class="${yearlyGainClass}">${yearlyGainSign}${formatMoney(yearlyGainCT)} €</td>
+      <td class="${totalGainClass}">${totalGainSign}${formatMoney(totalGainCT)} €</td>
+    `;
+
+    tbody.appendChild(row);
+  });
+}
+
+function displayWithdrawalsTable(yearlyData) {
+  const tbody = document.getElementById("withdrawals-data");
+  tbody.innerHTML = "";
+
+  yearlyData.forEach((data) => {
+    // Afficher uniquement les années de retraite avec des retraits
+    if (
+      data.phase === "Retraite" &&
+      (data.peaWithdrawal > 0 || data.ctWithdrawal > 0)
+    ) {
+      const row = document.createElement("tr");
+
+      // Calculer les versements nets (après impôts)
+      const peaNetWithdrawal = data.peaWithdrawal - (data.peaTaxesPaid || 0);
+      const ctNetWithdrawal = data.ctWithdrawal - (data.ctTaxesPaid || 0);
+      const totalNet = peaNetWithdrawal + ctNetWithdrawal;
+      const totalTaxes = (data.peaTaxesPaid || 0) + (data.ctTaxesPaid || 0);
+
+      row.innerHTML = `
+        <td>${data.age} ans</td>
+        <td>${data.peaWithdrawal > 0 ? formatMoney(peaNetWithdrawal) + " €" : "-"}</td>
+        <td>${data.peaTaxesPaid > 0 ? formatMoney(data.peaTaxesPaid) + " €" : "-"}</td>
+        <td>${data.ctWithdrawal > 0 ? formatMoney(ctNetWithdrawal) + " €" : "-"}</td>
+        <td>${data.ctTaxesPaid > 0 ? formatMoney(data.ctTaxesPaid) + " €" : "-"}</td>
+        <td class="text-primary font-weight-bold">${formatMoney(totalNet)} €</td>
+        <td>${formatMoney(totalTaxes)} €</td>
+      `;
+
+      tbody.appendChild(row);
+    }
   });
 }
 

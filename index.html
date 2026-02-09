@@ -262,26 +262,63 @@
                 "
             ></div>
 
-            <!-- Tableau -->
+            <!-- Tableaux PEA et CTO côte à côte -->
+            <div class="tables-row">
+                <!-- Tableau PEA -->
+                <div class="table-container-half">
+                    <h3>💼 PEA - Détails année par année</h3>
+                    <table id="pea-table">
+                        <thead>
+                            <tr>
+                                <th>Âge</th>
+                                <th>Phase</th>
+                                <th>Valeur PEA</th>
+                                <th>Versement PEA</th>
+                                <th>Total versé PEA</th>
+                                <th>Gain annuel</th>
+                                <th>Gain cumulé</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pea-data"></tbody>
+                    </table>
+                </div>
+
+                <!-- Tableau CTO -->
+                <div class="table-container-half">
+                    <h3>📈 Compte Titres - Détails année par année</h3>
+                    <table id="cto-table">
+                        <thead>
+                            <tr>
+                                <th>Âge</th>
+                                <th>Phase</th>
+                                <th>Valeur CTO</th>
+                                <th>Versement CTO</th>
+                                <th>Total versé CTO</th>
+                                <th>Gain annuel</th>
+                                <th>Gain cumulé</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cto-data"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tableau Versements -->
             <div class="table-container">
-                <h3>📊 Détails année par année</h3>
-                <table id="yearly-table">
+                <h3>💰 Versements après imposition (retraite)</h3>
+                <table id="withdrawals-table">
                     <thead>
                         <tr>
                             <th>Âge</th>
-                            <th>Phase</th>
-                            <th>Valeur PEA</th>
-                            <th>Versement PEA</th>
-                            <th>Total versé PEA</th>
-                            <th>Valeur CT</th>
-                            <th>Versement CT</th>
-                            <th>Total versé CT</th>
-                            <th>Gain annuel</th>
-                            <th>Gain cumulé</th>
-                            <th>Total financier</th>
+                            <th>Versement net PEA</th>
+                            <th>Impôts PEA</th>
+                            <th>Versement net CTO</th>
+                            <th>Impôts CTO</th>
+                            <th>Total net (PEA + CTO)</th>
+                            <th>Total impôts</th>
                         </tr>
                     </thead>
-                    <tbody id="yearly-data"></tbody>
+                    <tbody id="withdrawals-data"></tbody>
                 </table>
             </div>
 
