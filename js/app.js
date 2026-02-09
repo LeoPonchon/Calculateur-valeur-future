@@ -457,7 +457,7 @@ function displayTable(yearlyData) {
             <td>${formatMoney(data.contributed)} €</td>
             <td class="${ctClass}">${ctText}</td>
             <td class="${ctContributedClass}">${ctContributedText}</td>
-            <td class="text-primary font-weight-bold">${formatMoney(data.totalFinancial)} €</td>
+            <td class="text-primary">${formatMoney(data.totalFinancial)} €</td>
             <td class="${yearlyGainClass}">${yearlyGainSign}${formatMoney(totalYearlyGain)} €</td>
             <td class="${totalGainClass}">${totalGainSign}${formatMoney(totalGain)} €</td>
         `;
