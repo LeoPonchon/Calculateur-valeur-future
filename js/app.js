@@ -437,15 +437,11 @@ function displayTable(yearlyData) {
       data.phase === "Accumulation" ? "phase-accumulation" : "phase-retirement";
 
     // Affichage Compte Titres
-    let ctClass = data.ctBalance > 0 ? "text-info" : "text-muted";
     let ctText = data.ctBalance > 0 ? formatMoney(data.ctBalance) + " €" : "-";
-
-    let ctContributedClass =
-      data.ctContributed > 0 ? "text-info" : "text-muted";
     let ctContributedText =
       data.ctContributed > 0 ? formatMoney(data.ctContributed) + " €" : "-";
 
-    // Classes pour les gains (positif/négatif)
+    // Classes pour les gains (positif/négatif) - SEULES couleurs gardées
     const yearlyGainClass =
       totalYearlyGain >= 0 ? "text-success" : "text-danger";
     const totalGainClass = totalGain >= 0 ? "text-success" : "text-danger";
@@ -456,14 +452,14 @@ function displayTable(yearlyData) {
             <td>${data.age} ans</td>
             <td><span class="${phaseClass}">${data.phase}</span></td>
             <td>${formatMoney(data.balance)} €</td>
-            <td class="${data.actualContribution > 0 ? "text-success" : "text-muted"}">${data.actualContribution > 0 ? formatMoney(data.actualContribution) + " €" : "-"}</td>
+            <td>${data.actualContribution > 0 ? formatMoney(data.actualContribution) + " €" : "-"}</td>
             <td>${formatMoney(data.contributed)} €</td>
-            <td class="${ctClass}">${ctText}</td>
-            <td class="${data.ctContribution > 0 ? "text-info" : "text-muted"}">${data.ctContribution > 0 ? formatMoney(data.ctContribution) + " €" : "-"}</td>
-            <td class="${ctContributedClass}">${ctContributedText}</td>
+            <td>${ctText}</td>
+            <td>${data.ctContribution > 0 ? formatMoney(data.ctContribution) + " €" : "-"}</td>
+            <td>${ctContributedText}</td>
             <td class="${yearlyGainClass}">${yearlyGainSign}${formatMoney(totalYearlyGain)} €</td>
             <td class="${totalGainClass}">${totalGainSign}${formatMoney(totalGain)} €</td>
-            <td class="text-primary">${formatMoney(data.totalFinancial)} €</td>
+            <td>${formatMoney(data.totalFinancial)} €</td>
         `;
 
     tbody.appendChild(row);
