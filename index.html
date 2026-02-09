@@ -72,6 +72,7 @@
                             <th>Phase</th>
                             <th>Valeur PEA</th>
                             <th>Total versé</th>
+                            <th>Versement réel</th>
                             <th>Gain annuel</th>
                             <th>Gain cumulé</th>
                         </tr>
@@ -81,6 +82,19 @@
                     </tbody>
                 </table>
             </div>
+
+            <div
+                id="cap-warning"
+                style="
+                    display: none;
+                    background-color: #f59e0b;
+                    color: white;
+                    padding: 12px;
+                    border-radius: 8px;
+                    margin-bottom: 20px;
+                    font-weight: bold;
+                "
+            ></div>
 
             <div class="chart-container">
                 <canvas id="chart"></canvas>

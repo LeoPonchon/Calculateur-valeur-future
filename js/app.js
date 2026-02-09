@@ -1,6 +1,7 @@
 // Simulateur PEA - Calcul année par année avec courbe
 
 let chart = null;
+const PEA_CAPITAL_LIMIT = 150000; // Plafond de versement du PEA en France
 
 function calculate() {
   // Récupérer les valeurs
@@ -25,19 +26,54 @@ function calculate() {
   let balance = initial;
   let totalContributed = initial;
   let currentAge = startingAge;
+  let capReachedAge = null;
+  let capReachedMessage = "";
+
+  // Vérifier si le versement initial dépasse déjà le plafond
+  if (totalContributed > PEA_CAPITAL_LIMIT) {
+    capReachedMessage = `⚠️ Attention: Votre versement initial de ${formatMoney(initial)} € dépasse le plafond PEA de ${formatMoney(PEA_CAPITAL_LIMIT)} € !`;
+  }
 
   // Phase 1: Accumulation jusqu'à l'âge de retraite
   while (currentAge < retirementAge) {
     const gain = balance * r;
-    balance = balance + gain + annualContribution;
-    totalContributed += annualContribution;
+
+    // Vérifier si on atteint le plafond du PEA
+    let actualContribution = annualContribution;
+    let isCapReached = false;
+
+    if (totalContributed < PEA_CAPITAL_LIMIT) {
+      // Il reste de la marge, vérifier si le versement annuel dépasse le plafond
+      const remainingCap = PEA_CAPITAL_LIMIT - totalContributed;
+      if (actualContribution > remainingCap) {
+        actualContribution = remainingCap;
+        isCapReached = true;
+        if (capReachedAge === null) {
+          capReachedAge = currentAge + 1;
+          capReachedMessage = `🚫 Plafond PEA atteint à ${capReachedAge} ans ! Versement limité à ${formatMoney(actualContribution)} € (au lieu de ${formatMoney(annualContribution)} €)`;
+        }
+      }
+    } else {
+      // Plafond déjà atteint, plus aucun versement possible
+      actualContribution = 0;
+      isCapReached = true;
+      if (capReachedAge === null) {
+        capReachedAge = currentAge + 1;
+        capReachedMessage = `🚫 Plafond PEA déjà atteint ! Aucun versement supplémentaire possible.`;
+      }
+    }
+
+    balance = balance + gain + actualContribution;
+    totalContributed += actualContribution;
     currentAge++;
 
     yearlyData.push({
       age: currentAge,
       balance: balance,
       contributed: totalContributed,
+      actualContribution: actualContribution,
       phase: "Accumulation",
+      capReached: isCapReached,
     });
   }
 
@@ -56,7 +92,9 @@ function calculate() {
       age: currentAge,
       balance: Math.max(0, balance),
       contributed: totalContributed,
+      actualContribution: 0,
       phase: "Retraite",
+      capReached: false,
     });
   }
 
@@ -69,6 +107,13 @@ function calculate() {
   }
 
   document.getElementById("result").textContent = resultText;
+
+  // Afficher le message de plafond atteint
+  const capWarningElement = document.getElementById("cap-warning");
+  if (capWarningElement) {
+    capWarningElement.textContent = capReachedMessage;
+    capWarningElement.style.display = capReachedMessage ? "block" : "none";
+  }
 
   // Afficher la courbe
   displayChart(yearlyData);
@@ -186,11 +231,22 @@ function displayTable(yearlyData) {
     const phaseClass =
       data.phase === "Accumulation" ? "phase-accumulation" : "phase-retirement";
 
+    // Indicateur de plafond atteint
+    let contributionText = "";
+    if (data.capReached) {
+      contributionText = `<span style="color: #f59e0b; font-weight: bold;">⚠️ ${formatMoney(data.actualContribution)} € (plafond)</span>`;
+    } else if (data.actualContribution > 0) {
+      contributionText = `<span style="color: #10b981;">✓ ${formatMoney(data.actualContribution)} €</span>`;
+    } else {
+      contributionText = `<span style="color: #6b7280;">-</span>`;
+    }
+
     row.innerHTML = `
       <td>${data.age} ans</td>
       <td><span class="${phaseClass}">${data.phase}</span></td>
       <td>${formatMoney(data.balance)} €</td>
       <td>${formatMoney(data.contributed)} €</td>
+      <td>${contributionText}</td>
       <td style="color: ${yearlyGain >= 0 ? "#10b981" : "#ef4444"}">${yearlyGain >= 0 ? "+" : ""}${formatMoney(yearlyGain)} €</td>
       <td style="color: ${totalGain >= 0 ? "#10b981" : "#ef4444"}">${totalGain >= 0 ? "+" : ""}${formatMoney(totalGain)} €</td>
     `;
