@@ -6,22 +6,41 @@ const PEA_TAX_RATE = 0.172; // 17.2% prélèvements sociaux (PEA ouvert depuis 5
 const CT_TAX_RATE = 0.3; // 30% flat tax (17.2% prélèvements sociaux + 12.8% impôt) - appliqué sur les plus-values au retrait uniquement
 
 function calculate() {
-  // Récupérer les valeurs PEA
-  const initial = parseFloat(document.getElementById("initial").value) || 0;
-  const annualContribution =
-    parseFloat(document.getElementById("annual-contribution").value) || 0;
-  const contributingYears =
-    parseFloat(document.getElementById("contributing-years").value) || 0;
-  const peaWithdrawalAmount =
-    parseFloat(document.getElementById("pea-withdrawal").value) || 0;
-  const ctWithdrawalAmount =
-    parseFloat(document.getElementById("ct-withdrawal").value) || 0;
-  const rate = parseFloat(document.getElementById("return").value) || 0;
-  const startingAge =
-    parseFloat(document.getElementById("starting-age").value) || 0;
+  // Récupérer les valeurs PEA avec validation (valeurs positives ou nulles)
+  const initial = Math.max(
+    0,
+    parseFloat(document.getElementById("initial").value) || 0,
+  );
+  const annualContribution = Math.max(
+    0,
+    parseFloat(document.getElementById("annual-contribution").value) || 0,
+  );
+  const contributingYears = Math.max(
+    0,
+    parseFloat(document.getElementById("contributing-years").value) || 0,
+  );
+  const peaWithdrawalAmount = Math.max(
+    0,
+    parseFloat(document.getElementById("pea-withdrawal").value) || 0,
+  );
+  const ctWithdrawalAmount = Math.max(
+    0,
+    parseFloat(document.getElementById("ct-withdrawal").value) || 0,
+  );
+  const rate = Math.max(
+    -50,
+    Math.min(100, parseFloat(document.getElementById("return").value) || 0),
+  );
+  const startingAge = Math.max(
+    0,
+    parseFloat(document.getElementById("starting-age").value) || 0,
+  );
 
   // Récupérer uniquement le rendement Compte Titres
-  const ctRate = parseFloat(document.getElementById("ct-return").value) || 0;
+  const ctRate = Math.max(
+    -50,
+    Math.min(100, parseFloat(document.getElementById("ct-return").value) || 0),
+  );
 
   // Calculer automatiquement l'âge de retraite
   const retirementAge = startingAge + contributingYears;
@@ -133,6 +152,11 @@ function calculate() {
   let retirementYears = 0;
   const maxRetirementYears = 50;
 
+  // Récupérer le capital investi à la fin de la phase d'accumulation (une seule fois)
+  const lastAccumulationYear = yearlyData[yearlyData.length - 1];
+  const peaCapitalInvested = lastAccumulationYear.peaCapitalInvested || 0;
+  const ctCapitalInvested = lastAccumulationYear.ctCapitalInvested || 0;
+
   while (
     (balance > 0 || ctBalance > 0) &&
     retirementYears < maxRetirementYears
@@ -140,10 +164,6 @@ function calculate() {
     // Calculer les gains bruts
     const grossGainPEA = balance * r;
     const grossGainCT = ctBalance * ctR;
-
-    // Appliquer les taux d'imposition (17.2% PEA, 30% CT)
-    const netGainPEA = grossGainPEA * (1 - PEA_TAX_RATE);
-    const netGainCT = grossGainCT * (1 - CT_TAX_RATE);
 
     // Ajouter les gains bruts (avant impôt) au PEA
     balance = balance + grossGainPEA;
@@ -154,11 +174,6 @@ function calculate() {
     let ctWithdrawal = 0;
     let peaTaxableGain = 0; // Part de plus-value imposée dans le retrait PEA
     let ctTaxableGain = 0; // Part de plus-value imposée dans le retrait CT
-
-    // Récupérer le capital investi depuis la dernière année d'accumulation
-    const lastAccumulationYear = yearlyData[yearlyData.length - 1];
-    const peaCapitalInvested = lastAccumulationYear.peaCapitalInvested || 0;
-    const ctCapitalInvested = lastAccumulationYear.ctCapitalInvested || 0;
 
     // Retrait du PEA (selon le choix de l'utilisateur)
     if (peaWithdrawalAmount > 0 && balance > 0) {

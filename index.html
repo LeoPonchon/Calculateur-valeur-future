@@ -9,19 +9,19 @@
     </head>
     <body>
         <div class="container">
-            <h1>Simulateur PEA + Compte Titres</h1>
+            <h1>💼 Simulateur PEA + Compte Titres</h1>
 
             <!-- Section PEA -->
             <div class="form-section">
-                <h2 class="section-title">Paramètres PEA</h2>
+                <h2 class="section-title">📊 Paramètres de base</h2>
 
                 <div class="form-group">
-                    <label>Versement initial (€)</label>
+                    <label>💰 Versement initial (€)</label>
                     <input type="number" id="initial" placeholder="Ex: 10000" />
                 </div>
 
                 <div class="form-group">
-                    <label>Versement annuel (€)</label>
+                    <label>📅 Versement annuel (€)</label>
                     <input
                         type="number"
                         id="annual-contribution"
@@ -30,7 +30,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Années de versement</label>
+                    <label>⏰ Durée de versement (années)</label>
                     <input
                         type="number"
                         id="contributing-years"
@@ -39,7 +39,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Âge actuel</label>
+                    <label>🎂 Âge actuel</label>
                     <input
                         type="number"
                         id="starting-age"
@@ -48,7 +48,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Rendement annuel (%)</label>
+                    <label>📈 Rendement annuel (%)</label>
                     <input
                         type="number"
                         id="return"
@@ -56,9 +56,14 @@
                         step="0.1"
                     />
                 </div>
+            </div>
+
+            <!-- Section Retraite -->
+            <div class="form-section">
+                <h2 class="section-title">💵 Retraits à la retraite</h2>
 
                 <div class="form-group">
-                    <label>Retrait annuel PEA (€)</label>
+                    <label>🏦 Retrait annuel PEA (€)</label>
                     <input
                         type="number"
                         id="pea-withdrawal"
@@ -67,22 +72,25 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Retrait annuel Compte Titres (€)</label>
+                    <label>📊 Retrait annuel Compte Titres (€)</label>
                     <input
                         type="number"
                         id="ct-withdrawal"
                         placeholder="Ex: 0"
                     />
                 </div>
-            </div>
 
-            <!-- Section info retrait -->
-            <div class="form-section">
-                <h2 class="section-title">💡 Stratégie de retrait</h2>
-                <p style="color: #9ca3af; font-size: 14px; margin: 0">
-                    Choisissez combien retirer de chaque compte pendant la
-                    retraite.
-                    <br />
+                <p
+                    style="
+                        color: #10b981;
+                        font-size: 13px;
+                        margin: 10px 0 0 0;
+                        padding: 12px;
+                        background: rgba(16, 185, 129, 0.1);
+                        border-radius: 6px;
+                        border-left: 3px solid #10b981;
+                    "
+                >
                     💡 <strong>Conseil</strong> : Priorisez le PEA (17.2%
                     d'impôt) plutôt que le Compte Titres (30% d'impôt) pour
                     optimiser vos impôts.
@@ -92,17 +100,27 @@
             <!-- Section Compte Titres -->
             <div class="form-section">
                 <h2 class="section-title">
-                    Compte Titres (automatique après PEA)
+                    📈 Compte Titres (automatique après PEA)
                 </h2>
 
-                <p style="color: #9ca3af; font-size: 14px; margin: 0 0 15px 0">
-                    Une fois le plafond PEA atteint ou les versements terminés,
-                    vos versements continueront automatiquement sur le Compte
-                    Titres sans plafond de 150 000€.
+                <p
+                    style="
+                        color: #06b6d4;
+                        font-size: 13px;
+                        margin: 0 0 15px 0;
+                        padding: 10px;
+                        background: rgba(6, 182, 212, 0.1);
+                        border-radius: 6px;
+                        border-left: 3px solid #06b6d4;
+                    "
+                >
+                    ✨ Une fois le plafond PEA atteint (150 000€) ou les
+                    versements terminés, vos versements continueront
+                    automatiquement sur le Compte Titres.
                 </p>
 
                 <div class="form-group">
-                    <label>Rendement annuel Compte Titres (%)</label>
+                    <label>📊 Rendement annuel Compte Titres (%)</label>
                     <input
                         type="number"
                         id="ct-return"
@@ -115,7 +133,7 @@
 
             <!-- Section Taux d'imposition -->
             <div class="form-section">
-                <h2 class="section-title">📊 Taux d'imposition appliqués</h2>
+                <h2 class="section-title">📋 Taux d'imposition (France)</h2>
 
                 <div
                     style="
@@ -227,7 +245,7 @@
 
             <!-- Résultats -->
             <div class="result">
-                <h2>Valeur à la retraite</h2>
+                <h2>🎯 Valeur à la retraite</h2>
                 <p id="result">0 €</p>
             </div>
 
@@ -246,7 +264,7 @@
 
             <!-- Tableau -->
             <div class="table-container">
-                <h3>Détails année par année</h3>
+                <h3>📊 Détails année par année</h3>
                 <table id="yearly-table">
                     <thead>
                         <tr>
