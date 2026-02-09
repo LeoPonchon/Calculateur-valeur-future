@@ -434,20 +434,6 @@ function displayTable(yearlyData) {
     const phaseClass =
       data.phase === "Accumulation" ? "phase-accumulation" : "phase-retirement";
 
-    // Indicateur de plafond atteint
-    let contributionClass = "";
-    let contributionIcon = "";
-    if (data.capReached) {
-      contributionClass = "text-warning";
-      contributionIcon = "⚠️ ";
-    } else if (data.actualContribution > 0) {
-      contributionClass = "text-success";
-      contributionIcon = "✓ ";
-    } else {
-      contributionClass = "text-muted";
-      contributionIcon = "";
-    }
-
     // Affichage Compte Titres
     let ctClass = data.ctBalance > 0 ? "text-info" : "text-muted";
     let ctText = data.ctBalance > 0 ? formatMoney(data.ctBalance) + " €" : "-";
@@ -468,13 +454,12 @@ function displayTable(yearlyData) {
             <td>${data.age} ans</td>
             <td><span class="${phaseClass}">${data.phase}</span></td>
             <td>${formatMoney(data.balance)} €</td>
-            <td class="${ctClass}">${ctText}</td>
-            <td class="text-primary font-weight-bold">${formatMoney(data.totalFinancial)} €</td>
             <td>${formatMoney(data.contributed)} €</td>
+            <td class="${ctClass}">${ctText}</td>
             <td class="${ctContributedClass}">${ctContributedText}</td>
-            <td class="${contributionClass}">${contributionIcon}${data.actualContribution > 0 ? formatMoney(data.actualContribution) + " €" : "-"}</td>
             <td class="${yearlyGainClass}">${yearlyGainSign}${formatMoney(totalYearlyGain)} €</td>
             <td class="${totalGainClass}">${totalGainSign}${formatMoney(totalGain)} €</td>
+            <td class="text-primary font-weight-bold">${formatMoney(data.totalFinancial)} €</td>
         `;
 
     tbody.appendChild(row);
