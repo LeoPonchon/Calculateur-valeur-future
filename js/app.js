@@ -12,8 +12,10 @@ function calculate() {
     parseFloat(document.getElementById("annual-contribution").value) || 0;
   const contributingYears =
     parseFloat(document.getElementById("contributing-years").value) || 0;
-  const annualWithdrawal =
-    parseFloat(document.getElementById("annual-withdrawal").value) || 0;
+  const peaWithdrawalAmount =
+    parseFloat(document.getElementById("pea-withdrawal").value) || 0;
+  const ctWithdrawalAmount =
+    parseFloat(document.getElementById("ct-withdrawal").value) || 0;
   const rate = parseFloat(document.getElementById("return").value) || 0;
   const startingAge =
     parseFloat(document.getElementById("starting-age").value) || 0;
@@ -152,46 +154,30 @@ function calculate() {
     let ctWithdrawal = 0;
     let peaTaxableGain = 0; // Part de plus-value imposée dans le retrait PEA
     let ctTaxableGain = 0; // Part de plus-value imposée dans le retrait CT
-    let remainingWithdrawal = annualWithdrawal;
 
     // Récupérer le capital investi depuis la dernière année d'accumulation
     const lastAccumulationYear = yearlyData[yearlyData.length - 1];
     const peaCapitalInvested = lastAccumulationYear.peaCapitalInvested || 0;
     const ctCapitalInvested = lastAccumulationYear.ctCapitalInvested || 0;
 
-    // Retirer d'abord du PEA
-    if (balance > 0 && remainingWithdrawal > 0) {
-      if (balance >= remainingWithdrawal) {
-        peaWithdrawal = remainingWithdrawal;
+    // Retrait du PEA (selon le choix de l'utilisateur)
+    if (peaWithdrawalAmount > 0 && balance > 0) {
+      peaWithdrawal = Math.min(peaWithdrawalAmount, balance);
 
-        // Calculer la part de plus-value dans le retrait PEA
-        // Ratio : (valeur totale - capital investi) / valeur totale
-        const peaGainRatio = Math.max(
-          0,
-          (balance - peaCapitalInvested) / balance,
-        );
-        peaTaxableGain = peaWithdrawal * peaGainRatio;
+      // Calculer la part de plus-value dans le retrait PEA
+      // Ratio : (valeur totale - capital investi) / valeur totale
+      const peaGainRatio = Math.max(
+        0,
+        (balance - peaCapitalInvested) / balance,
+      );
+      peaTaxableGain = peaWithdrawal * peaGainRatio;
 
-        balance -= remainingWithdrawal;
-        remainingWithdrawal = 0;
-      } else {
-        peaWithdrawal = balance;
-
-        // Calculer la part de plus-value dans le retrait PEA
-        const peaGainRatio = Math.max(
-          0,
-          (balance - peaCapitalInvested) / balance,
-        );
-        peaTaxableGain = peaWithdrawal * peaGainRatio;
-
-        remainingWithdrawal -= balance;
-        balance = 0;
-      }
+      balance -= peaWithdrawal;
     }
 
-    // Puis retirer du CT si nécessaire
-    if (remainingWithdrawal > 0 && ctBalance > 0) {
-      ctWithdrawal = Math.min(remainingWithdrawal, ctBalance);
+    // Retrait du Compte Titres (selon le choix de l'utilisateur)
+    if (ctWithdrawalAmount > 0 && ctBalance > 0) {
+      ctWithdrawal = Math.min(ctWithdrawalAmount, ctBalance);
 
       // Calculer la part de plus-value dans le retrait CT
       // Ratio : (valeur totale - capital investi) / valeur totale
@@ -202,7 +188,6 @@ function calculate() {
       ctTaxableGain = ctWithdrawal * ctGainRatio;
 
       ctBalance -= ctWithdrawal;
-      remainingWithdrawal = 0;
     }
 
     // Appliquer l'impôt sur les plus-values retirées
@@ -475,7 +460,8 @@ document.addEventListener("DOMContentLoaded", function () {
     "contributing-years",
     "starting-age",
     "return",
-    "annual-withdrawal",
+    "pea-withdrawal",
+    "ct-withdrawal",
     "ct-return",
   ];
 
