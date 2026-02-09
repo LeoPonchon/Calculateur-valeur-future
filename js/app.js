@@ -134,6 +134,7 @@ function calculate() {
       contributed: totalContributed,
       ctContributed: ctTotalContributed,
       actualContribution: actualContribution,
+      ctContribution: ctContribution,
       phase: "Accumulation",
       capReached: isCapReached,
       // Stocker les gains bruts pour calculer l'impôt au retrait
@@ -220,6 +221,7 @@ function calculate() {
       contributed: totalContributed,
       ctContributed: ctTotalContributed,
       actualContribution: 0,
+      ctContribution: 0,
       phase: "Retraite",
       capReached: false,
       // Stocker les montants retirés et les impôts payés sur les plus-values
@@ -454,12 +456,14 @@ function displayTable(yearlyData) {
             <td>${data.age} ans</td>
             <td><span class="${phaseClass}">${data.phase}</span></td>
             <td>${formatMoney(data.balance)} €</td>
+            <td class="${data.actualContribution > 0 ? "text-success" : "text-muted"}">${data.actualContribution > 0 ? formatMoney(data.actualContribution) + " €" : "-"}</td>
             <td>${formatMoney(data.contributed)} €</td>
             <td class="${ctClass}">${ctText}</td>
+            <td class="${data.ctContribution > 0 ? "text-info" : "text-muted"}">${data.ctContribution > 0 ? formatMoney(data.ctContribution) + " €" : "-"}</td>
             <td class="${ctContributedClass}">${ctContributedText}</td>
-            <td class="text-primary">${formatMoney(data.totalFinancial)} €</td>
             <td class="${yearlyGainClass}">${yearlyGainSign}${formatMoney(totalYearlyGain)} €</td>
             <td class="${totalGainClass}">${totalGainSign}${formatMoney(totalGain)} €</td>
+            <td class="text-primary">${formatMoney(data.totalFinancial)} €</td>
         `;
 
     tbody.appendChild(row);
