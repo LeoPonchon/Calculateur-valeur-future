@@ -184,10 +184,10 @@ input[type="number"]::-webkit-outer-spin-button {
     font-weight: 600;
 }
 
-/* Conteneur pour les tableaux côte à côte */
+/* Conteneur pour les tableaux empilés verticalement */
 .tables-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 20px;
     margin-top: 30px;
 }
@@ -197,6 +197,7 @@ input[type="number"]::-webkit-outer-spin-button {
     padding: 20px;
     border-radius: 8px;
     max-height: 400px;
+    width: 100%;
     overflow-y: auto;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
