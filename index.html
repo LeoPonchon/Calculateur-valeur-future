@@ -1,93 +1,75 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Simulateur PEA</title>
+        <link rel="stylesheet" href="css/style.css" />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Simulateur PEA</h1>
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Calculatrice de valeur future</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-
-<body>
-    <h1 class="page-title">Plan millionaire en moins de 20 ans</h1>
-    <main class="container">
-        <h1>Calcul de la valeur future</h1>
-        <p class="note">Formule: FV = Capital × (1 + taux)^périodes + versements annuels</p>
-
-        <form id="fv-form" autocomplete="off">
-            <label>Montant initial (€)<input id="capital" type="number" min="0" step="0.01" value="0"></label>
-            <label>Taux annuel (%)<input id="taux" type="number" min="0" step="0.01" value="13"></label>
-            <label>Nombre de périodes (années)<input id="periodes" type="number" min="0" step="1" value="20"></label>
-            <label>Salaire brut annuel (€)<input id="salaire-brut-annuel" type="number" min="0" step="0.01"
-                    value="60000"></label>
-            <label>Taux d'épargne (%)<input id="taux-epargne" type="number" min="0" step="0.01" value="50"></label>
-            <label>Charges salariales (%)<input id="charges-salariales" type="number" min="0" step="0.01"
-                    value="22"></label>
-            <label>Nombre de parts (quotient familial)<input id="parts" type="number" min="0.5" step="0.5"
-                    value="1"></label>
-            <label>Eau (€/an)<input id="cout-eau" type="number" min="0" step="0.01" value="600"></label>
-            <label>Électricité (€/an)<input id="cout-electricite" type="number" min="0" step="0.01"
-                    value="1200"></label>
-            <label>Gaz / Chauffage (€/an)<input id="cout-gaz" type="number" min="0" step="0.01" value="500"></label>
-            <label>Nourriture (€/an)<input id="cout-nourriture" type="number" min="0" step="0.01" value="4200"></label>
-            <label>Internet (€/an)<input id="cout-internet" type="number" min="0" step="0.01" value="515"></label>
-            <label>Téléphonie (€/an)<input id="cout-telephonie" type="number" min="0" step="0.01" value="250"></label>
-            <label>Habillement (€/an)<input id="cout-habillement" type="number" min="0" step="0.01" value="500"></label>
-            <label>Prêt immobilier (€/an)<input id="cout-pret" type="number" min="0" step="0.01" value="6000"></label>
-            <div class="actions">
-                <button class="primary" type="submit">Calculer</button>
-                <button class="secondary" type="button" id="reset">Réinitialiser à 0</button>
-                <button class="secondary" type="button" id="export-pdf">Exporter en PDF</button>
-            </div>
-        </form>
-
-        <div id="resultat" class="resultat">Valeur future: 0,00 €</div>
-        <div id="apport-calc" class="example">Apport annuel calculé: 0,00 €</div>
-        <div id="historique" class="example"></div>
-
-        <section class="section" id="section-courbe">
-            <h2>Courbe de croissance (PEA)</h2>
-            <div id="chart-site" aria-label="Courbe de croissance"></div>
-        </section>
-
-        <section class="section" id="section-indices">
-            <h2>Rendements annuels par indice</h2>
-            <p class="subnote">Sélectionnez un indice pour voir ses rendements annuels 2019–2024 <span id="source-badge"
-                    class="badge static" style="margin-left:8px">données de secours</span></p>
-            <div class="indices-controls">
-                <div class="left">
-                    <label>Indice<select id="indice-select">
-                            <option value="msciWorld">MSCI World</option>
-                            <option value="sp500">S&P 500</option>
-                            <option value="stoxx600">STOXX Europe 600</option>
-                            <option value="nasdaq100">Nasdaq‑100</option>
-                        </select></label>
-                </div>
-                <div class="right">
-                    <button type="button" id="copy-avg" class="secondary btn-small"
-                        title="Copier la moyenne des 10 dernières années">Copier moyenne 10 ans</button>
-                </div>
+            <div class="form-group">
+                <label>Versement initial (€)</label>
+                <input type="number" id="initial" value="10000" />
             </div>
 
-            <table aria-label="Rendements annuels par indice">
-                <thead>
-                    <tr>
-                        <th>Année</th>
-                        <th>Rendement</th>
-                    </tr>
-                </thead>
-                <tbody id="indices-tbody">
-                    <tr>
-                        <td colspan="2" style="color:var(--muted)">Aucune donnée à afficher</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-    </main>
-    <!-- Rapport d'impression (généré dynamiquement avant impression) -->
-    <section id="rapport" class="rapport" aria-hidden="true"></section>
+            <div class="form-group">
+                <label>Versement annuel (€)</label>
+                <input type="number" id="annual-contribution" value="6000" />
+            </div>
 
-    <script src="app.js"></script>
-</body>
+            <div class="form-group">
+                <label>Années de versement</label>
+                <input type="number" id="contributing-years" value="20" />
+            </div>
 
+            <div class="form-group">
+                <label>Âge actuel</label>
+                <input type="number" id="starting-age" value="30" />
+            </div>
+
+            <div class="form-group">
+                <label>Rendement annuel (%)</label>
+                <input type="number" id="return" value="7" step="0.1" />
+            </div>
+
+            <div class="form-group">
+                <label>Retrait annuel (€)</label>
+                <input type="number" id="annual-withdrawal" value="12000" />
+            </div>
+
+            <div class="result">
+                <h2>Valeur à la retraite</h2>
+                <p id="result">0 €</p>
+            </div>
+
+            <div class="table-container">
+                <h3>Détails année par année</h3>
+                <table id="yearly-table">
+                    <thead>
+                        <tr>
+                            <th>Âge</th>
+                            <th>Phase</th>
+                            <th>Valeur PEA</th>
+                            <th>Total versé</th>
+                            <th>Gain annuel</th>
+                            <th>Gain cumulé</th>
+                        </tr>
+                    </thead>
+                    <tbody id="yearly-data">
+                        <!-- Les données seront insérées ici par JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="chart"></canvas>
+            </div>
+        </div>
+
+        <script src="js/app.js"></script>
+    </body>
 </html>

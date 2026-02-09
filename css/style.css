@@ -1,0 +1,188 @@
+/* Simulateur PEA - CSS Simplifié */
+
+:root {
+    --bg: #0a0e1a;
+    --card: #1f2937;
+    --text: #f9fafb;
+    --accent: #3b82f6;
+    --success: #10b981;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    background: var(--card);
+    padding: 40px;
+    border-radius: 10px;
+    max-width: 900px;
+    width: 100%;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: var(--accent);
+    font-size: 28px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #374151;
+    border-radius: 5px;
+    background: #374151;
+    color: white;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.result {
+    margin-top: 30px;
+    padding: 20px;
+    background: #374151;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.result h2 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: var(--text);
+}
+
+.result p {
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--success);
+    white-space: pre-line;
+    line-height: 1.4;
+}
+
+.chart-container {
+    margin-top: 30px;
+    background: #374151;
+    padding: 20px;
+    border-radius: 5px;
+    position: relative;
+    height: 450px;
+}
+
+#chart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.table-container {
+    margin-top: 30px;
+    background: #374151;
+    padding: 20px;
+    border-radius: 5px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.table-container h3 {
+    color: var(--text);
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+#yearly-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+#yearly-table thead {
+    position: sticky;
+    top: 0;
+    background: #1f2937;
+    z-index: 10;
+}
+
+#yearly-table th {
+    padding: 12px 8px;
+    text-align: left;
+    color: var(--text);
+    font-weight: 600;
+    border-bottom: 2px solid var(--accent);
+}
+
+#yearly-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#yearly-table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.phase-accumulation {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.phase-retirement {
+    background: rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+#yearly-table tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 20px;
+    }
+
+    .chart-container {
+        height: 350px;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    .result p {
+        font-size: 22px;
+    }
+}
