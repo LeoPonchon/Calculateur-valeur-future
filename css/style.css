@@ -10,6 +10,35 @@
     --error: #ef4444;
 }
 
+/* Classes utilitaires pour les couleurs du texte */
+.text-success {
+    color: var(--success) !important;
+}
+
+.text-danger {
+    color: var(--error) !important;
+}
+
+.text-warning {
+    color: var(--warning) !important;
+}
+
+.text-info {
+    color: #06b6d4 !important;
+}
+
+.text-muted {
+    color: #9ca3af !important;
+}
+
+.text-primary {
+    color: var(--accent) !important;
+}
+
+.font-weight-bold {
+    font-weight: 700 !important;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -456,25 +485,9 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 /* Mode sombre/clair (si supporté par le navigateur) */
-/* Styles pour les colonnes immobilières */
-#yearly-table th:nth-child(6),
-#yearly-table th:nth-child(7),
-#yearly-table th:nth-child(8) {
-    background: rgba(245, 158, 11, 0.1);
-    border-left: 2px solid rgba(245, 158, 11, 0.3);
-}
-
-#yearly-table td:nth-child(6),
-#yearly-table td:nth-child(7),
-#yearly-table td:nth-child(8) {
-    border-left: 2px solid rgba(245, 158, 11, 0.2);
-}
-
-/* Amélioration de l'affichage du total financier */
+/* Amélioration de l'affichage des colonnes importantes */
 #yearly-table td:nth-child(5) {
     font-weight: 700;
-    background: rgba(139, 92, 246, 0.15);
-    border-left: 3px solid #8b5cf6;
 }
 
 @media (prefers-color-scheme: light) {

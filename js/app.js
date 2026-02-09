@@ -74,10 +74,8 @@ function calculate() {
     // Phase d'accumulation : PAS d'imposition, on utilise le gain brut complet
     // L'imposition sera appliquée au moment des retraits (phase de retraite)
     const grossGainPEA = balance * r;
-    const netGainPEA = grossGainPEA; // Pas d'imposition pendant l'accumulation
 
     const grossGainCT = ctBalance * ctR;
-    const netGainCT = grossGainCT; // Pas d'imposition pendant l'accumulation
 
     // Vérifier si on atteint le plafond du PEA
     let actualContribution = annualContribution;
@@ -120,7 +118,7 @@ function calculate() {
     }
 
     // Ajouter le gain NET d'impôts au PEA
-    balance = balance + netGainPEA + actualContribution;
+    balance = balance + grossGainPEA + actualContribution;
     totalContributed += actualContribution;
     currentAge++;
 
@@ -285,41 +283,49 @@ function displayChart(yearlyData) {
     chart.destroy();
   }
 
+  const ages = yearlyData.map((d) => d.age);
+  const peaBalances = yearlyData.map((d) => d.balance);
+  const ctBalances = yearlyData.map((d) => d.ctBalance);
+  const totalFinancial = yearlyData.map((d) => d.totalFinancial);
+  const totalContributed = yearlyData.map(
+    (d) => d.contributed + d.ctContributed,
+  );
+
   chart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: yearlyData.map((d) => `${d.age} ans`),
+      labels: ages,
       datasets: [
         {
           label: "Total financier",
-          data: yearlyData.map((d) => d.totalFinancial),
+          data: totalFinancial,
           borderColor: "#8b5cf6",
           backgroundColor: "rgba(139, 92, 246, 0.1)",
           fill: true,
-          tension: 0.1,
+          tension: 0.4,
         },
         {
-          label: "Valeur du PEA",
-          data: yearlyData.map((d) => d.balance),
+          label: "PEA",
+          data: peaBalances,
           borderColor: "#3b82f6",
-          backgroundColor: "transparent",
-          tension: 0.1,
+          backgroundColor: "rgba(59, 130, 246, 0.1)",
+          tension: 0.4,
         },
         {
-          label: "Valeur Compte Titres",
-          data: yearlyData.map((d) => d.ctBalance),
+          label: "Compte Titres",
+          data: ctBalances,
           borderColor: "#06b6d4",
-          backgroundColor: "transparent",
-          borderDash: [3, 3],
-          tension: 0.1,
+          backgroundColor: "rgba(6, 182, 212, 0.1)",
+          borderDash: [5, 5],
+          tension: 0.4,
         },
         {
-          label: "Total versé PEA",
-          data: yearlyData.map((d) => d.contributed),
-          borderColor: "#10b981",
-          backgroundColor: "transparent",
+          label: "Total versé",
+          data: totalContributed,
+          borderColor: "#9ca3af",
+          backgroundColor: "rgba(156, 163, 175, 0.1)",
           borderDash: [2, 2],
-          tension: 0.1,
+          tension: 0.4,
         },
       ],
     },
@@ -329,11 +335,11 @@ function displayChart(yearlyData) {
       plugins: {
         title: {
           display: true,
-          text: "Évolution du patrimoine (montants bruts avant impôts)",
+          text: "Évolution du patrimoine dans le temps",
           color: "#f9fafb",
           font: {
-            size: 16,
-            weight: "600",
+            size: 18,
+            weight: "bold",
           },
           padding: {
             bottom: 20,
@@ -341,15 +347,18 @@ function displayChart(yearlyData) {
         },
         legend: {
           labels: {
-            color: "#f9fafb",
+            color: "#d1d5db",
           },
         },
         tooltip: {
           callbacks: {
             label: function (context) {
-              return (
-                context.dataset.label + ": " + formatMoney(context.raw) + " €"
-              );
+              let label = context.dataset.label || "";
+              if (label) {
+                label += ": ";
+              }
+              label += formatMoney(context.parsed.y) + " €";
+              return label;
             },
           },
         },
@@ -358,21 +367,21 @@ function displayChart(yearlyData) {
         y: {
           beginAtZero: true,
           ticks: {
-            color: "#f9fafb",
+            color: "#9ca3af",
             callback: function (value) {
               return formatMoney(value) + " €";
             },
           },
           grid: {
-            color: "rgba(255, 255, 255, 0.1)",
+            color: "rgba(255, 255, 255, 0.05)",
           },
         },
         x: {
           ticks: {
-            color: "#f9fafb",
+            color: "#9ca3af",
           },
           grid: {
-            color: "rgba(255, 255, 255, 0.1)",
+            color: "rgba(255, 255, 255, 0.05)",
           },
         },
       },
@@ -426,41 +435,46 @@ function displayTable(yearlyData) {
       data.phase === "Accumulation" ? "phase-accumulation" : "phase-retirement";
 
     // Indicateur de plafond atteint
-    let contributionText = "";
+    let contributionClass = "";
+    let contributionIcon = "";
     if (data.capReached) {
-      contributionText = `<span style="color: #f59e0b; font-weight: bold;">⚠️ ${formatMoney(data.actualContribution)} € (plafond)</span>`;
+      contributionClass = "text-warning";
+      contributionIcon = "⚠️ ";
     } else if (data.actualContribution > 0) {
-      contributionText = `<span style="color: #10b981;">✓ ${formatMoney(data.actualContribution)} €</span>`;
+      contributionClass = "text-success";
+      contributionIcon = "✓ ";
     } else {
-      contributionText = `<span style="color: #6b7280;">-</span>`;
+      contributionClass = "text-muted";
+      contributionIcon = "";
     }
 
     // Affichage Compte Titres
-    let ctText = "";
-    let ctContributedText = "";
-    let totalFinancialText = "";
+    let ctClass = data.ctBalance > 0 ? "text-info" : "text-muted";
+    let ctText = data.ctBalance > 0 ? formatMoney(data.ctBalance) + " €" : "-";
 
-    if (data.ctBalance > 0) {
-      ctText = `<span style="color: #06b6d4;">📈 ${formatMoney(data.ctBalance)} €</span>`;
-      ctContributedText = `<span style="color: #06b6d4;">${formatMoney(data.ctContributed)} €</span>`;
-    } else {
-      ctText = `<span style="color: #6b7280;">-</span>`;
-      ctContributedText = `<span style="color: #6b7280;">-</span>`;
-    }
+    let ctContributedClass =
+      data.ctContributed > 0 ? "text-info" : "text-muted";
+    let ctContributedText =
+      data.ctContributed > 0 ? formatMoney(data.ctContributed) + " €" : "-";
 
-    totalFinancialText = `<span style="color: #3b82f6; font-weight: bold;">${formatMoney(data.totalFinancial)} €</span>`;
+    // Classes pour les gains (positif/négatif)
+    const yearlyGainClass =
+      totalYearlyGain >= 0 ? "text-success" : "text-danger";
+    const totalGainClass = totalGain >= 0 ? "text-success" : "text-danger";
+    const yearlyGainSign = totalYearlyGain >= 0 ? "+" : "";
+    const totalGainSign = totalGain >= 0 ? "+" : "";
 
     row.innerHTML = `
             <td>${data.age} ans</td>
             <td><span class="${phaseClass}">${data.phase}</span></td>
             <td>${formatMoney(data.balance)} €</td>
-            <td>${ctText}</td>
-            <td>${totalFinancialText}</td>
+            <td class="${ctClass}">${ctText}</td>
+            <td class="text-primary font-weight-bold">${formatMoney(data.totalFinancial)} €</td>
             <td>${formatMoney(data.contributed)} €</td>
-            <td>${ctContributedText}</td>
-            <td>${contributionText}</td>
-            <td style="color: ${totalYearlyGain >= 0 ? "#10b981" : "#ef4444"}">${totalYearlyGain >= 0 ? "+" : ""}${formatMoney(totalYearlyGain)} €</td>
-            <td style="color: ${totalGain >= 0 ? "#10b981" : "#ef4444"}">${totalGain >= 0 ? "+" : ""}${formatMoney(totalGain)} €</td>
+            <td class="${ctContributedClass}">${ctContributedText}</td>
+            <td class="${contributionClass}">${contributionIcon}${data.actualContribution > 0 ? formatMoney(data.actualContribution) + " €" : "-"}</td>
+            <td class="${yearlyGainClass}">${yearlyGainSign}${formatMoney(totalYearlyGain)} €</td>
+            <td class="${totalGainClass}">${totalGainSign}${formatMoney(totalGain)} €</td>
         `;
 
     tbody.appendChild(row);
@@ -473,10 +487,10 @@ document.addEventListener("DOMContentLoaded", function () {
     "initial",
     "annual-contribution",
     "contributing-years",
-    "starting-age",
-    "return",
     "pea-withdrawal",
     "ct-withdrawal",
+    "starting-age",
+    "return",
     "ct-return",
   ];
 
