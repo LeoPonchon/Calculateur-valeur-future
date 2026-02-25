@@ -4,10 +4,17 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Simulateur PEA + Compte Titres</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="css/style.css" />
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     </head>
     <body>
+        <button id="theme-toggle" class="theme-toggle" aria-label="Basculer le thème">
+            <span class="theme-icon sun">☀️</span>
+            <span class="theme-icon moon">🌙</span>
+        </button>
         <div class="container">
             <h1>💼 Simulateur PEA + Compte Titres</h1>
 
@@ -80,17 +87,7 @@
                     />
                 </div>
 
-                <p
-                    style="
-                        color: #10b981;
-                        font-size: 13px;
-                        margin: 10px 0 0 0;
-                        padding: 12px;
-                        background: rgba(16, 185, 129, 0.1);
-                        border-radius: 6px;
-                        border-left: 3px solid #10b981;
-                    "
-                >
+                <p class="info-tip success-tip">
                     💡 <strong>Conseil</strong> : Priorisez le PEA (17.2%
                     d'impôt) plutôt que le Compte Titres (30% d'impôt) pour
                     optimiser vos impôts.
@@ -103,17 +100,7 @@
                     📈 Compte Titres (automatique après PEA)
                 </h2>
 
-                <p
-                    style="
-                        color: #06b6d4;
-                        font-size: 13px;
-                        margin: 0 0 15px 0;
-                        padding: 10px;
-                        background: rgba(6, 182, 212, 0.1);
-                        border-radius: 6px;
-                        border-left: 3px solid #06b6d4;
-                    "
-                >
+                <p class="info-tip info-tip-cyan">
                     ✨ Une fois le plafond PEA atteint (150 000€) ou les
                     versements terminés, vos versements continueront
                     automatiquement sur le Compte Titres.
@@ -135,92 +122,27 @@
             <div class="form-section">
                 <h2 class="section-title">📋 Taux d'imposition (France)</h2>
 
-                <div
-                    style="
-                        display: grid;
-                        grid-template-columns: repeat(
-                            auto-fit,
-                            minmax(250px, 1fr)
-                        );
-                        gap: 20px;
-                    "
-                >
-                    <div
-                        style="
-                            background: rgba(59, 130, 246, 0.1);
-                            padding: 15px;
-                            border-radius: 8px;
-                            border-left: 4px solid #3b82f6;
-                        "
-                    >
-                        <h4
-                            style="
-                                color: #3b82f6;
-                                margin: 0 0 10px 0;
-                                font-size: 16px;
-                            "
-                        >
-                            💼 PEA (après 5 ans)
-                        </h4>
-                        <p
-                            style="
-                                color: #d1d5db;
-                                margin: 5px 0;
-                                font-size: 14px;
-                            "
-                        >
+                <div class="tax-grid">
+                    <div class="tax-card tax-card-pea">
+                        <h4>💼 PEA (après 5 ans)</h4>
+                        <p class="tax-rate">
                             <strong>Imposition au retrait : 17.2%</strong>
                         </p>
-                        <p
-                            style="
-                                color: #9ca3af;
-                                margin: 5px 0;
-                                font-size: 13px;
-                            "
-                        >
-                            • <strong>Pas d'impôt pendant la détention</strong
-                            ><br />
+                        <p class="tax-details">
+                            • <strong>Pas d'impôt pendant la détention</strong><br />
                             • 17.2% Prélèvements sociaux au retrait<br />
                             • 0% Impôt sur le revenu (exonéré)<br />
                             • Uniquement sur la part de plus-value
                         </p>
                     </div>
 
-                    <div
-                        style="
-                            background: rgba(6, 182, 212, 0.1);
-                            padding: 15px;
-                            border-radius: 8px;
-                            border-left: 4px solid #06b6d4;
-                        "
-                    >
-                        <h4
-                            style="
-                                color: #06b6d4;
-                                margin: 0 0 10px 0;
-                                font-size: 16px;
-                            "
-                        >
-                            📈 Compte Titres
-                        </h4>
-                        <p
-                            style="
-                                color: #d1d5db;
-                                margin: 5px 0;
-                                font-size: 14px;
-                            "
-                        >
+                    <div class="tax-card tax-card-cto">
+                        <h4>📈 Compte Titres</h4>
+                        <p class="tax-rate">
                             <strong>Imposition au retrait : 30%</strong>
                         </p>
-                        <p
-                            style="
-                                color: #9ca3af;
-                                margin: 5px 0;
-                                font-size: 13px;
-                            "
-                        >
-                            • <strong>Pas d'impôt pendant la détention</strong
-                            ><br />
+                        <p class="tax-details">
+                            • <strong>Pas d'impôt pendant la détention</strong><br />
                             • 30% Flat tax au retrait (17.2% + 12.8%)<br />
                             • Uniquement sur la part de plus-value<br />
                             • Option barème progressif possible
@@ -228,14 +150,7 @@
                     </div>
                 </div>
 
-                <p
-                    style="
-                        color: #9ca3af;
-                        font-size: 13px;
-                        margin: 15px 0 0 0;
-                        text-align: center;
-                    "
-                >
+                <p class="warning-text">
                     ⚠️ Les montants affichés sont
                     <strong>bruts (avant impôts)</strong>. L'imposition (17.2%
                     PEA / 30% CT) est appliquée uniquement sur les plus-values
@@ -249,18 +164,7 @@
                 <p id="result">0 €</p>
             </div>
 
-            <div
-                id="cap-warning"
-                style="
-                    display: none;
-                    background-color: #f59e0b;
-                    color: white;
-                    padding: 12px;
-                    border-radius: 8px;
-                    margin-bottom: 20px;
-                    font-weight: bold;
-                "
-            ></div>
+            <div id="cap-warning" class="cap-warning"></div>
 
             <!-- Tableaux PEA et CTO côte à côte -->
             <div class="tables-row">
@@ -328,6 +232,21 @@
             </div>
         </div>
 
+        <script>
+            // Theme Toggle - Style Only
+            (function() {
+                const toggle = document.getElementById('theme-toggle');
+                const savedTheme = localStorage.getItem('theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                
+                toggle.addEventListener('click', function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('theme', next);
+                });
+            })();
+        </script>
         <script src="js/app.js"></script>
     </body>
 </html>
