@@ -626,27 +626,12 @@ function displayPEATable(yearlyData) {
   yearlyData.forEach((data, index) => {
     const row = document.createElement("tr");
 
-    let yearlyGain = 0;
-    if (index === 0) {
-      yearlyGain = data.balance - data.contributed;
-    } else {
-      const previous = yearlyData[index - 1];
-      const balanceChange = data.balance - previous.balance;
-      const contributedChange = data.contributed - previous.contributed;
-      yearlyGain = balanceChange - contributedChange;
-    }
     const totalGain = data.balance - data.contributed;
-
-    const phaseClass =
-      data.phase === "Retraite" ? "phase-retirement" : "phase-accumulation";
 
     row.innerHTML = `
       <td>${data.age} ans</td>
-      <td><span class="${phaseClass}">${data.phase}</span></td>
       <td>${formatMoney(data.balance)} €</td>
-      <td>${data.actualContribution > 0 ? `${formatMoney(data.actualContribution)} €` : "-"}</td>
       <td>${formatMoney(data.contributed)} €</td>
-      <td class="${yearlyGain >= 0 ? "text-success" : "text-danger"}">${yearlyGain >= 0 ? "+" : ""}${formatMoney(yearlyGain)} €</td>
       <td class="${totalGain >= 0 ? "text-success" : "text-danger"}">${totalGain >= 0 ? "+" : ""}${formatMoney(totalGain)} €</td>
     `;
 
@@ -661,27 +646,12 @@ function displayCTOTable(yearlyData) {
   yearlyData.forEach((data, index) => {
     const row = document.createElement("tr");
 
-    let yearlyGain = 0;
-    if (index === 0) {
-      yearlyGain = data.ctBalance - data.ctContributed;
-    } else {
-      const previous = yearlyData[index - 1];
-      const balanceChange = data.ctBalance - previous.ctBalance;
-      const contributedChange = data.ctContributed - previous.ctContributed;
-      yearlyGain = balanceChange - contributedChange;
-    }
     const totalGain = data.ctBalance - data.ctContributed;
-
-    const phaseClass =
-      data.phase === "Retraite" ? "phase-retirement" : "phase-accumulation";
 
     row.innerHTML = `
       <td>${data.age} ans</td>
-      <td><span class="${phaseClass}">${data.phase}</span></td>
       <td>${data.ctBalance > 0 ? `${formatMoney(data.ctBalance)} €` : "-"}</td>
-      <td>${data.ctContribution > 0 ? `${formatMoney(data.ctContribution)} €` : "-"}</td>
       <td>${data.ctContributed > 0 ? `${formatMoney(data.ctContributed)} €` : "-"}</td>
-      <td class="${yearlyGain >= 0 ? "text-success" : "text-danger"}">${yearlyGain >= 0 ? "+" : ""}${formatMoney(yearlyGain)} €</td>
       <td class="${totalGain >= 0 ? "text-success" : "text-danger"}">${totalGain >= 0 ? "+" : ""}${formatMoney(totalGain)} €</td>
     `;
 

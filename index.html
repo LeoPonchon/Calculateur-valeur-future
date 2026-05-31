@@ -20,302 +20,276 @@
     </button>
 
     <div class="container">
-      <h1>Simulateur PEA + Compte Titres</h1>
-
-      <div class="form-section">
-        <h2 class="section-title">Paramètres de base</h2>
-
-        <div class="form-group">
-          <label for="initial">Versement initial (€)</label>
-          <input type="number" id="initial" placeholder="Ex : 10 000" min="0" step="100" />
-        </div>
-
-        <div class="form-group">
-          <label for="annual-contribution">Versement annuel (€)</label>
-          <input
-            type="number"
-            id="annual-contribution"
-            placeholder="Ex : 6 000"
-            min="0"
-            step="100"
-          />
-          <label class="checkbox-row" for="use-available-savings">
-            <input type="checkbox" id="use-available-savings" />
-            Utiliser automatiquement l’épargne disponible (calculée ci-dessous)
-          </label>
-        </div>
-
-        <div class="form-group">
-          <label for="contributing-years">Durée de versement (années)</label>
-          <input type="number" id="contributing-years" placeholder="Ex : 20" min="0" step="1" />
-        </div>
-
-        <div class="form-group">
-          <label for="starting-age">Âge actuel</label>
-          <input type="number" id="starting-age" placeholder="Ex : 30" min="0" step="1" />
-        </div>
-
-        <div class="form-group">
-          <label for="retirement-age">Âge de début des retraits</label>
-          <input type="number" id="retirement-age" placeholder="Ex : 50" min="0" step="1" />
-          <label class="checkbox-row" for="use-auto-retirement-age">
-            <input type="checkbox" id="use-auto-retirement-age" checked />
-            Calculer automatiquement (âge actuel + durée de versement)
-          </label>
-        </div>
-
-        <div class="form-group">
-          <label for="return">Rendement annuel PEA (%)</label>
-          <input type="number" id="return" placeholder="Ex : 7" step="0.1" />
-        </div>
-
-        <p class="info-tip info-tip-cyan">
-          Une fois le plafond PEA atteint (150&nbsp;000&nbsp;€ de versements), le surplus de
-          versement part automatiquement sur le CTO.
+      <header class="page-header">
+        <h1>Simulateur PEA + Compte Titres</h1>
+        <p class="page-subtitle">
+          Simulation indicative (taux constants). Le plafond PEA est géré à
+          <strong>150&nbsp;000&nbsp;€ de versements</strong> (hors plus-values), avec
+          bascule automatique du surplus vers le CTO.
         </p>
+      </header>
 
-        <div class="form-group">
-          <label for="ct-return">Rendement annuel CTO (%)</label>
-          <input type="number" id="ct-return" placeholder="Ex : 7" step="0.1" value="7" />
+      <main class="layout">
+        <section class="layout-left" aria-label="Entrées">
+          <div class="form-section">
+            <h2 class="section-title">Paramètres de base</h2>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="initial">Versement initial (€)</label>
+                <input
+                  type="number"
+                  id="initial"
+                  placeholder="Ex : 10 000"
+                  min="0"
+                  step="100"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="annual-contribution">Versement annuel (€)</label>
+                <input
+                  type="number"
+                  id="annual-contribution"
+                  placeholder="Ex : 6 000"
+                  min="0"
+                  step="100"
+                />
+                <label class="checkbox-row" for="use-available-savings">
+                  <input type="checkbox" id="use-available-savings" />
+                  Utiliser automatiquement l’épargne disponible
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label for="contributing-years">Durée de versement (années)</label>
+                <input
+                  type="number"
+                  id="contributing-years"
+                  placeholder="Ex : 20"
+                  min="0"
+                  step="1"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="starting-age">Âge actuel</label>
+                <input type="number" id="starting-age" placeholder="Ex : 30" min="0" step="1" />
+              </div>
+
+              <div class="form-group">
+                <label for="retirement-age">Âge de début des retraits</label>
+                <input type="number" id="retirement-age" placeholder="Ex : 50" min="0" step="1" />
+                <label class="checkbox-row" for="use-auto-retirement-age">
+                  <input type="checkbox" id="use-auto-retirement-age" checked />
+                  Calculer automatiquement (âge actuel + durée de versement)
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label for="return">Rendement annuel PEA (%)</label>
+                <input type="number" id="return" placeholder="Ex : 7" step="0.1" />
+              </div>
+
+              <div class="form-group">
+                <label for="ct-return">Rendement annuel CTO (%)</label>
+                <input type="number" id="ct-return" placeholder="Ex : 7" step="0.1" value="7" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 class="section-title">Revenus et dépenses</h2>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="gross-salary">Salaire brut annuel (€)</label>
+                <input type="number" id="gross-salary" placeholder="Ex : 45 000" min="0" step="100" />
+              </div>
+
+              <div class="form-group">
+                <label for="gross-salary-monthly">Salaire brut mensuel (€)</label>
+                <input type="number" id="gross-salary-monthly" placeholder="Ex : 3 750" min="0" step="10" />
+              </div>
+
+              <div class="form-group">
+                <label for="net-rate">Net estimé (% du brut)</label>
+                <input type="number" id="net-rate" value="70" min="0" max="100" step="0.1" />
+              </div>
+            </div>
+
+            <div class="expenses-head">
+              <h3 class="subsection-title">Dépenses</h3>
+              <button id="add-expense" class="btn btn-secondary" type="button">Ajouter</button>
+            </div>
+
+            <div class="expenses-columns" aria-hidden="true">
+              <div>Libellé</div>
+              <div>€/mois</div>
+              <div>€/an</div>
+              <div></div>
+            </div>
+
+            <div id="expenses-list" class="expenses-list" aria-label="Liste des dépenses"></div>
+
+            <div class="income-summary" aria-label="Résumé revenus et dépenses">
+              <div class="summary-item">
+                <div class="summary-label">Revenu net estimé</div>
+                <div class="summary-value" id="net-income">0 € / an</div>
+                <div class="summary-subvalue" id="net-income-monthly">0 € / mois</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-label">Total dépenses</div>
+                <div class="summary-value" id="expenses-total">0 € / an</div>
+                <div class="summary-subvalue" id="expenses-total-monthly">0 € / mois</div>
+              </div>
+              <div class="summary-item summary-highlight">
+                <div class="summary-label">Épargne disponible</div>
+                <div class="summary-value" id="available-savings">0 € / an</div>
+                <div class="summary-subvalue" id="available-savings-monthly">0 € / mois</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 class="section-title">Retraits</h2>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="pea-withdrawal-monthly">Retrait mensuel PEA (€)</label>
+                <input type="number" id="pea-withdrawal-monthly" placeholder="Ex : 1 000" min="0" step="10" />
+              </div>
+
+              <div class="form-group">
+                <label for="pea-withdrawal">Retrait annuel PEA (€)</label>
+                <input type="number" id="pea-withdrawal" placeholder="Ex : 12 000" min="0" step="100" />
+              </div>
+
+              <div class="form-group">
+                <label for="ct-withdrawal-monthly">Retrait mensuel CTO (€)</label>
+                <input type="number" id="ct-withdrawal-monthly" placeholder="Ex : 0" min="0" step="10" />
+              </div>
+
+              <div class="form-group">
+                <label for="ct-withdrawal">Retrait annuel CTO (€)</label>
+                <input type="number" id="ct-withdrawal" placeholder="Ex : 0" min="0" step="100" />
+              </div>
+            </div>
+
+            <div id="withdraw-advice" class="advice-card" aria-label="Conseil de ratio PEA/CTO"></div>
+          </div>
+
+          <div class="form-section">
+            <h2 class="section-title">Fiscalité (hypothèse simplifiée)</h2>
+
+            <div class="tax-grid">
+              <div class="tax-card tax-card-pea">
+                <h4>PEA (après 5 ans)</h4>
+                <p class="tax-rate"><strong>Imposition au retrait : 17,2%</strong></p>
+                <p class="tax-details">
+                  • Pas d’impôt pendant la détention<br />
+                  • Impôt appliqué uniquement sur la part de plus-value retirée
+                </p>
+              </div>
+
+              <div class="tax-card tax-card-cto">
+                <h4>Compte Titres</h4>
+                <p class="tax-rate"><strong>Imposition au retrait : 30%</strong></p>
+                <p class="tax-details">
+                  • Pas d’impôt pendant la détention<br />
+                  • Impôt appliqué uniquement sur la part de plus-value retirée
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="layout-right" aria-label="Résumé et configuration">
+          <div class="form-section">
+            <h2 class="section-title">Résultat</h2>
+            <div class="result">
+              <h2>Valeur à l’âge de départ</h2>
+              <p id="result">0 €</p>
+            </div>
+            <div id="cap-warning" class="cap-warning"></div>
+          </div>
+
+          <div class="form-section">
+            <h2 class="section-title">Configuration (Markdown)</h2>
+            <div class="config-panel" aria-label="Export / Import (Markdown)">
+              <div class="config-actions">
+                <button id="export-config" class="btn" type="button">Exporter</button>
+                <button id="download-config" class="btn btn-secondary" type="button">Télécharger .md</button>
+                <button id="import-config" class="btn btn-secondary" type="button">Importer</button>
+              </div>
+
+              <label class="config-label" for="config-markdown">Configuration</label>
+              <textarea
+                id="config-markdown"
+                class="config-textarea"
+                rows="14"
+                placeholder="Cliquez sur “Exporter”, ou collez ici un Markdown puis cliquez sur “Importer”."
+              ></textarea>
+            </div>
+          </div>
+        </aside>
+      </main>
+
+      <section class="bottom" aria-label="Tableaux et graphique">
+          <div class="tables-row">
+          <div class="table-container-half">
+            <h3>PEA — détails</h3>
+            <table id="pea-table">
+              <thead>
+                <tr>
+                  <th>Âge</th>
+                  <th>Valeur PEA</th>
+                  <th>Total versé PEA</th>
+                  <th>Gain cumulé</th>
+                </tr>
+              </thead>
+              <tbody id="pea-data"></tbody>
+            </table>
+          </div>
+
+          <div class="table-container-half">
+            <h3>CTO — détails</h3>
+            <table id="cto-table">
+              <thead>
+                <tr>
+                  <th>Âge</th>
+                  <th>Valeur CTO</th>
+                  <th>Total versé CTO</th>
+                  <th>Gain cumulé</th>
+                </tr>
+              </thead>
+              <tbody id="cto-data"></tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
-      <div class="form-section">
-        <h2 class="section-title">Configuration</h2>
-
-        <p class="info-tip info-tip-cyan">
-          Exportez/importez vos paramètres (et vos dépenses) en Markdown pour sauvegarder ou partager des scénarios.
-        </p>
-
-        <details class="config-panel">
-          <summary>Exporter / Importer (Markdown)</summary>
-
-          <div class="config-actions">
-            <button id="export-config" class="btn" type="button">Exporter</button>
-            <button id="download-config" class="btn btn-secondary" type="button">Télécharger .md</button>
-            <button id="import-config" class="btn btn-secondary" type="button">Importer</button>
-          </div>
-
-          <label class="config-label" for="config-markdown">Configuration (Markdown)</label>
-          <textarea
-            id="config-markdown"
-            class="config-textarea"
-            rows="12"
-            placeholder="Cliquez sur “Exporter”, ou collez ici un Markdown puis cliquez sur “Importer”."
-          ></textarea>
-        </details>
-      </div>
-
-      <div class="form-section">
-        <h2 class="section-title">Revenus et dépenses</h2>
-
-        <p class="info-tip info-tip-cyan">
-          Objectif : estimer l’épargne annuelle disponible à partir de votre salaire brut et de
-          vos dépenses annuelles.
-        </p>
-
-        <div class="form-grid-2">
-          <div class="form-group">
-            <label for="gross-salary">Salaire brut annuel (€)</label>
-            <input
-              type="number"
-              id="gross-salary"
-              placeholder="Ex : 45 000"
-              min="0"
-              step="100"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="gross-salary-monthly">Salaire brut mensuel (€)</label>
-            <input
-              type="number"
-              id="gross-salary-monthly"
-              placeholder="Ex : 3 750"
-              min="0"
-              step="10"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="net-rate">Net estimé (% du brut)</label>
-            <input type="number" id="net-rate" value="70" min="0" max="100" step="0.1" />
-          </div>
-        </div>
-
-        <div class="expenses-head">
-          <h3 class="subsection-title">Dépenses annuelles</h3>
-          <button id="add-expense" class="btn btn-secondary" type="button">+ Ajouter</button>
-        </div>
-
-        <div class="expenses-columns" aria-hidden="true">
-          <div>Libellé</div>
-          <div>€/mois</div>
-          <div>€/an</div>
-          <div></div>
-        </div>
-
-        <div id="expenses-list" class="expenses-list" aria-label="Liste des dépenses"></div>
-
-        <div class="income-summary" aria-label="Résumé revenus et dépenses">
-          <div class="summary-item">
-            <div class="summary-label">Revenu net estimé</div>
-            <div class="summary-value" id="net-income">0 € / an</div>
-            <div class="summary-subvalue" id="net-income-monthly">0 € / mois</div>
-          </div>
-          <div class="summary-item">
-            <div class="summary-label">Total dépenses</div>
-            <div class="summary-value" id="expenses-total">0 € / an</div>
-            <div class="summary-subvalue" id="expenses-total-monthly">0 € / mois</div>
-          </div>
-          <div class="summary-item summary-highlight">
-            <div class="summary-label">Épargne annuelle disponible</div>
-            <div class="summary-value" id="available-savings">0 € / an</div>
-            <div class="summary-subvalue" id="available-savings-monthly">0 € / mois</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h2 class="section-title">Retraits à la retraite</h2>
-
-        <div class="form-grid-2">
-          <div class="form-group">
-            <label for="pea-withdrawal-monthly">Retrait mensuel PEA (€)</label>
-            <input
-              type="number"
-              id="pea-withdrawal-monthly"
-              placeholder="Ex : 1 000"
-              min="0"
-              step="10"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="pea-withdrawal">Retrait annuel PEA (€)</label>
-            <input type="number" id="pea-withdrawal" placeholder="Ex : 12 000" min="0" step="100" />
-          </div>
-
-          <div class="form-group">
-            <label for="ct-withdrawal-monthly">Retrait mensuel CTO (€)</label>
-            <input
-              type="number"
-              id="ct-withdrawal-monthly"
-              placeholder="Ex : 0"
-              min="0"
-              step="10"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="ct-withdrawal">Retrait annuel CTO (€)</label>
-            <input type="number" id="ct-withdrawal" placeholder="Ex : 0" min="0" step="100" />
-          </div>
-        </div>
-
-        <div id="withdraw-advice" class="advice-card" aria-label="Conseil de ratio PEA/CTO"></div>
-
-        <p class="info-tip success-tip">
-          Conseil : en pratique, on privilégie souvent le PEA (17,2% sur la part de plus-value)
-          plutôt que le CTO (30% sur la part de plus-value), selon votre situation.
-        </p>
-      </div>
-
-      <div class="form-section">
-        <h2 class="section-title">Fiscalité (hypothèse simplifiée)</h2>
-
-        <div class="tax-grid">
-          <div class="tax-card tax-card-pea">
-            <h4>PEA (après 5 ans)</h4>
-            <p class="tax-rate"><strong>Imposition au retrait : 17,2%</strong></p>
-            <p class="tax-details">
-              • Pas d’impôt pendant la détention<br />
-              • Impôt appliqué uniquement sur la part de plus-value retirée
-            </p>
-          </div>
-
-          <div class="tax-card tax-card-cto">
-            <h4>Compte Titres</h4>
-            <p class="tax-rate"><strong>Imposition au retrait : 30%</strong></p>
-            <p class="tax-details">
-              • Pas d’impôt pendant la détention<br />
-              • Impôt appliqué uniquement sur la part de plus-value retirée
-            </p>
-          </div>
-        </div>
-
-        <p class="warning-text">
-          Les montants affichés sont <strong>bruts</strong> (avant impôts). Les impôts ci-dessus
-          sont appliqués uniquement sur les plus-values au moment des retraits (modèle simplifié).
-        </p>
-      </div>
-
-      <div class="result">
-        <h2>Valeur à la retraite</h2>
-        <p id="result">0 €</p>
-      </div>
-
-      <div id="cap-warning" class="cap-warning"></div>
-
-      <div class="tables-row">
-        <div class="table-container-half">
-          <h3>PEA — détails année par année</h3>
-          <table id="pea-table">
+        <div class="table-container">
+          <h3>Retraits après impôts (retraite)</h3>
+          <table id="withdrawals-table">
             <thead>
               <tr>
                 <th>Âge</th>
-                <th>Phase</th>
-                <th>Valeur PEA</th>
-                <th>Versement PEA</th>
-                <th>Total versé PEA</th>
-                <th>Gain annuel</th>
-                <th>Gain cumulé</th>
+                <th>Retrait net PEA</th>
+                <th>Impôts PEA</th>
+                <th>Retrait net CTO</th>
+                <th>Impôts CTO</th>
+                <th>Total net (PEA + CTO)</th>
+                <th>Total impôts</th>
               </tr>
             </thead>
-            <tbody id="pea-data"></tbody>
+            <tbody id="withdrawals-data"></tbody>
           </table>
         </div>
 
-        <div class="table-container-half">
-          <h3>CTO — détails année par année</h3>
-          <table id="cto-table">
-            <thead>
-              <tr>
-                <th>Âge</th>
-                <th>Phase</th>
-                <th>Valeur CTO</th>
-                <th>Versement CTO</th>
-                <th>Total versé CTO</th>
-                <th>Gain annuel</th>
-                <th>Gain cumulé</th>
-              </tr>
-            </thead>
-            <tbody id="cto-data"></tbody>
-          </table>
+        <div class="chart-container">
+          <canvas id="chart"></canvas>
         </div>
-      </div>
-
-      <div class="table-container">
-        <h3>Retraits après impôts (retraite)</h3>
-        <table id="withdrawals-table">
-          <thead>
-            <tr>
-              <th>Âge</th>
-              <th>Retrait net PEA</th>
-              <th>Impôts PEA</th>
-              <th>Retrait net CTO</th>
-              <th>Impôts CTO</th>
-              <th>Total net (PEA + CTO)</th>
-              <th>Total impôts</th>
-            </tr>
-          </thead>
-          <tbody id="withdrawals-data"></tbody>
-        </table>
-      </div>
-
-      <div class="chart-container">
-        <canvas id="chart"></canvas>
-      </div>
+      </section>
     </div>
 
     <script>
