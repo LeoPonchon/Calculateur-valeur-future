@@ -1206,7 +1206,7 @@ h1 {
 
 .expense-row {
     display: grid;
-    grid-template-columns: 1fr 180px 42px;
+    grid-template-columns: 1fr 160px 160px 42px;
     gap: 10px;
     align-items: center;
 }
@@ -1259,6 +1259,13 @@ h1 {
     color: var(--text-primary);
 }
 
+.summary-subvalue {
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
 .summary-item.summary-highlight .summary-value {
     color: var(--success);
 }
@@ -1268,7 +1275,7 @@ h1 {
         grid-template-columns: 1fr;
     }
     .expense-row {
-        grid-template-columns: 1fr 1fr 42px;
+        grid-template-columns: 1fr 1fr 1fr 42px;
     }
     .income-summary {
         grid-template-columns: 1fr;

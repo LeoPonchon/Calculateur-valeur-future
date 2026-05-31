@@ -108,7 +108,24 @@
         <div class="form-grid-2">
           <div class="form-group">
             <label for="gross-salary">Salaire brut annuel (€)</label>
-            <input type="number" id="gross-salary" placeholder="Ex : 45 000" min="0" step="100" />
+            <input
+              type="number"
+              id="gross-salary"
+              placeholder="Ex : 45 000"
+              min="0"
+              step="100"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="gross-salary-monthly">Salaire brut mensuel (€)</label>
+            <input
+              type="number"
+              id="gross-salary-monthly"
+              placeholder="Ex : 3 750"
+              min="0"
+              step="10"
+            />
           </div>
 
           <div class="form-group">
@@ -127,15 +144,18 @@
         <div class="income-summary" aria-label="Résumé revenus et dépenses">
           <div class="summary-item">
             <div class="summary-label">Revenu net estimé</div>
-            <div class="summary-value" id="net-income">0 €</div>
+            <div class="summary-value" id="net-income">0 € / an</div>
+            <div class="summary-subvalue" id="net-income-monthly">0 € / mois</div>
           </div>
           <div class="summary-item">
             <div class="summary-label">Total dépenses</div>
-            <div class="summary-value" id="expenses-total">0 €</div>
+            <div class="summary-value" id="expenses-total">0 € / an</div>
+            <div class="summary-subvalue" id="expenses-total-monthly">0 € / mois</div>
           </div>
           <div class="summary-item summary-highlight">
             <div class="summary-label">Épargne annuelle disponible</div>
-            <div class="summary-value" id="available-savings">0 €</div>
+            <div class="summary-value" id="available-savings">0 € / an</div>
+            <div class="summary-subvalue" id="available-savings-monthly">0 € / mois</div>
           </div>
         </div>
       </div>

@@ -9,6 +9,18 @@ let chart = null;
 
 const STORAGE_KEY = "pea_simulator_v2";
 
+function roundMoney(amount) {
+  return Math.round((Number(amount) || 0) * 100) / 100;
+}
+
+function yearToMonth(amountAnnual) {
+  return roundMoney((Number(amountAnnual) || 0) / 12);
+}
+
+function monthToYear(amountMonthly) {
+  return roundMoney((Number(amountMonthly) || 0) * 12);
+}
+
 function clampNumber(value, { min = 0, max = Number.POSITIVE_INFINITY } = {}) {
   const numberValue = Number(value);
   if (!Number.isFinite(numberValue)) return 0;
@@ -62,11 +74,16 @@ function readInputs() {
     document.getElementById("gross-salary")?.value ?? 0,
     { min: 0 },
   );
+  const grossSalaryMonthly = clampNumber(
+    document.getElementById("gross-salary-monthly")?.value ?? 0,
+    { min: 0 },
+  );
   const netRatePercent = clampNumber(
     document.getElementById("net-rate")?.value ?? 70,
     { min: 0, max: 100 },
   );
-  const netIncome = grossSalary * (netRatePercent / 100);
+  const grossAnnual = Math.max(grossSalary, monthToYear(grossSalaryMonthly));
+  const netIncome = grossAnnual * (netRatePercent / 100);
   const expensesTotal = getExpensesTotal();
   const availableSavings = netIncome - expensesTotal;
 
@@ -84,6 +101,7 @@ function readInputs() {
     peaRate: peaRatePercent / 100,
     ctoRate: ctoRatePercent / 100,
     grossSalary,
+    grossSalaryMonthly,
     netRatePercent,
     netIncome,
     expensesTotal,
@@ -305,16 +323,36 @@ function setResult(summary) {
 
 function setIncomeSummary({ netIncome, expensesTotal, availableSavings }) {
   const netIncomeEl = document.getElementById("net-income");
+  const netIncomeMonthlyEl = document.getElementById("net-income-monthly");
   const expensesTotalEl = document.getElementById("expenses-total");
+  const expensesTotalMonthlyEl = document.getElementById(
+    "expenses-total-monthly",
+  );
   const availableSavingsEl = document.getElementById("available-savings");
+  const availableSavingsMonthlyEl = document.getElementById(
+    "available-savings-monthly",
+  );
 
-  if (netIncomeEl) netIncomeEl.textContent = `${formatMoney(netIncome)} €`;
+  if (netIncomeEl) netIncomeEl.textContent = `${formatMoney(netIncome)} € / an`;
+  if (netIncomeMonthlyEl)
+    netIncomeMonthlyEl.textContent = `${formatMoney(yearToMonth(netIncome))} € / mois`;
   if (expensesTotalEl)
-    expensesTotalEl.textContent = `${formatMoney(expensesTotal)} €`;
+    expensesTotalEl.textContent = `${formatMoney(expensesTotal)} € / an`;
+  if (expensesTotalMonthlyEl)
+    expensesTotalMonthlyEl.textContent = `${formatMoney(
+      yearToMonth(expensesTotal),
+    )} € / mois`;
 
   if (availableSavingsEl) {
-    availableSavingsEl.textContent = `${formatMoney(availableSavings)} €`;
+    availableSavingsEl.textContent = `${formatMoney(availableSavings)} € / an`;
     availableSavingsEl.style.color =
+      availableSavings >= 0 ? "" : "var(--error)";
+  }
+  if (availableSavingsMonthlyEl) {
+    availableSavingsMonthlyEl.textContent = `${formatMoney(
+      yearToMonth(availableSavings),
+    )} € / mois`;
+    availableSavingsMonthlyEl.style.color =
       availableSavings >= 0 ? "" : "var(--error)";
   }
 }
@@ -503,8 +541,13 @@ function getExpensesTotal() {
   const rows = document.querySelectorAll("[data-expense-row]");
   let total = 0;
   rows.forEach((row) => {
-    const amountInput = row.querySelector("[data-expense-amount]");
-    total += clampNumber(amountInput?.value ?? 0, { min: 0 });
+    const amountAnnualInput = row.querySelector("[data-expense-amount-annual]");
+    const amountMonthlyInput = row.querySelector("[data-expense-amount-monthly]");
+
+    const annual = clampNumber(amountAnnualInput?.value ?? 0, { min: 0 });
+    const monthly = clampNumber(amountMonthlyInput?.value ?? 0, { min: 0 });
+
+    total += Math.max(annual, monthToYear(monthly));
   });
   return total;
 }
@@ -520,13 +563,21 @@ function createExpenseRow({ label = "", amount = 0 } = {}) {
   labelInput.value = label;
   labelInput.setAttribute("data-expense-label", "1");
 
-  const amountInput = document.createElement("input");
-  amountInput.type = "number";
-  amountInput.min = "0";
-  amountInput.step = "100";
-  amountInput.placeholder = "Montant €/an";
-  amountInput.value = String(amount || "");
-  amountInput.setAttribute("data-expense-amount", "1");
+  const amountMonthlyInput = document.createElement("input");
+  amountMonthlyInput.type = "number";
+  amountMonthlyInput.min = "0";
+  amountMonthlyInput.step = "10";
+  amountMonthlyInput.placeholder = "€/mois";
+  amountMonthlyInput.value = amount ? String(yearToMonth(amount)) : "";
+  amountMonthlyInput.setAttribute("data-expense-amount-monthly", "1");
+
+  const amountAnnualInput = document.createElement("input");
+  amountAnnualInput.type = "number";
+  amountAnnualInput.min = "0";
+  amountAnnualInput.step = "100";
+  amountAnnualInput.placeholder = "€/an";
+  amountAnnualInput.value = String(amount || "");
+  amountAnnualInput.setAttribute("data-expense-amount-annual", "1");
 
   const removeButton = document.createElement("button");
   removeButton.type = "button";
@@ -536,14 +587,24 @@ function createExpenseRow({ label = "", amount = 0 } = {}) {
 
   const onAnyChange = () => calculateAndRender();
   labelInput.addEventListener("input", onAnyChange);
-  amountInput.addEventListener("input", onAnyChange);
+  amountMonthlyInput.addEventListener("input", () => {
+    const monthly = clampNumber(amountMonthlyInput.value, { min: 0 });
+    amountAnnualInput.value = String(monthToYear(monthly));
+    onAnyChange();
+  });
+  amountAnnualInput.addEventListener("input", () => {
+    const annual = clampNumber(amountAnnualInput.value, { min: 0 });
+    amountMonthlyInput.value = String(yearToMonth(annual));
+    onAnyChange();
+  });
   removeButton.addEventListener("click", () => {
     row.remove();
     calculateAndRender();
   });
 
   row.appendChild(labelInput);
-  row.appendChild(amountInput);
+  row.appendChild(amountMonthlyInput);
+  row.appendChild(amountAnnualInput);
   row.appendChild(removeButton);
   return row;
 }
@@ -580,12 +641,13 @@ function saveState() {
       ctoWithdrawal: document.getElementById("ct-withdrawal")?.value ?? "",
       ctoReturn: document.getElementById("ct-return")?.value ?? "7",
       grossSalary: document.getElementById("gross-salary")?.value ?? "",
+      grossSalaryMonthly: document.getElementById("gross-salary-monthly")?.value ?? "",
       netRate: document.getElementById("net-rate")?.value ?? "70",
       useAvailableSavings: document.getElementById("use-available-savings")?.checked ?? false,
     },
     expenses: Array.from(document.querySelectorAll("[data-expense-row]")).map((row) => ({
       label: row.querySelector("[data-expense-label]")?.value ?? "",
-      amount: row.querySelector("[data-expense-amount]")?.value ?? "",
+      amountAnnual: row.querySelector("[data-expense-amount-annual]")?.value ?? "",
     })),
   };
 
@@ -617,6 +679,7 @@ function restoreState() {
       setValue("ct-withdrawal", state.values.ctoWithdrawal);
       setValue("ct-return", state.values.ctoReturn);
       setValue("gross-salary", state.values.grossSalary);
+      setValue("gross-salary-monthly", state.values.grossSalaryMonthly);
       setValue("net-rate", state.values.netRate);
 
       const checkbox = document.getElementById("use-available-savings");
@@ -629,7 +692,10 @@ function restoreState() {
       if (Array.isArray(state.expenses) && state.expenses.length > 0) {
         state.expenses.forEach((e) =>
           expensesContainer.appendChild(
-            createExpenseRow({ label: e.label, amount: Number(e.amount) || 0 }),
+            createExpenseRow({
+              label: e.label,
+              amount: Number(e.amountAnnual) || 0,
+            }),
           ),
         );
       }
@@ -639,11 +705,28 @@ function restoreState() {
   }
 }
 
+function normalizeSalaryFields() {
+  const annualEl = document.getElementById("gross-salary");
+  const monthlyEl = document.getElementById("gross-salary-monthly");
+  if (!annualEl || !monthlyEl) return;
+
+  const annual = clampNumber(annualEl.value, { min: 0 });
+  const monthly = clampNumber(monthlyEl.value, { min: 0 });
+
+  if (annual > 0 && monthly === 0) {
+    monthlyEl.value = String(yearToMonth(annual));
+    return;
+  }
+  if (monthly > 0 && annual === 0) {
+    annualEl.value = String(monthToYear(monthly));
+  }
+}
+
 function exportConfigMarkdown() {
   const inputs = readInputs();
   const expenses = Array.from(document.querySelectorAll("[data-expense-row]")).map((row) => ({
     label: (row.querySelector("[data-expense-label]")?.value ?? "").trim(),
-    amount: clampNumber(row.querySelector("[data-expense-amount]")?.value ?? 0, { min: 0 }),
+    amount: clampNumber(row.querySelector("[data-expense-amount-annual]")?.value ?? 0, { min: 0 }),
   }));
 
   const lines = [];
@@ -661,7 +744,7 @@ function exportConfigMarkdown() {
   lines.push(`- cto_withdrawal: ${Math.round(inputs.ctoWithdrawalAmount)}`);
   lines.push("");
   lines.push("## Revenus");
-  lines.push(`- gross_salary: ${Math.round(inputs.grossSalary || 0)}`);
+  lines.push(`- gross_salary: ${Math.round(Math.max(inputs.grossSalary || 0, monthToYear(inputs.grossSalaryMonthly || 0)))}`);
   lines.push(`- net_rate_percent: ${Number(inputs.netRatePercent || 0)}`);
   lines.push("");
   lines.push("## Dépenses annuelles");
@@ -760,6 +843,7 @@ function applyImportedConfig(config) {
   setValue("pea-withdrawal", parseNumberLoose(values.pea_withdrawal));
   setValue("ct-withdrawal", parseNumberLoose(values.cto_withdrawal));
   setValue("gross-salary", parseNumberLoose(values.gross_salary));
+  setValue("gross-salary-monthly", yearToMonth(parseNumberLoose(values.gross_salary)));
   setValue("net-rate", parseNumberLoose(values.net_rate_percent));
 
   const useSavings = String(values.use_available_savings || "").toLowerCase();
@@ -796,6 +880,7 @@ function downloadTextFile({ filename, text }) {
 
 document.addEventListener("DOMContentLoaded", () => {
   restoreState();
+  normalizeSalaryFields();
 
   const inputIds = [
     "initial",
@@ -807,6 +892,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "return",
     "ct-return",
     "gross-salary",
+    "gross-salary-monthly",
     "net-rate",
     "use-available-savings",
   ];
@@ -824,6 +910,19 @@ document.addEventListener("DOMContentLoaded", () => {
     addExpenseButton.addEventListener("click", () => {
       expensesContainer.appendChild(createExpenseRow());
       calculateAndRender();
+    });
+  }
+
+  const salaryAnnualEl = document.getElementById("gross-salary");
+  const salaryMonthlyEl = document.getElementById("gross-salary-monthly");
+  if (salaryAnnualEl && salaryMonthlyEl) {
+    salaryAnnualEl.addEventListener("input", () => {
+      const annual = clampNumber(salaryAnnualEl.value, { min: 0 });
+      salaryMonthlyEl.value = String(yearToMonth(annual));
+    });
+    salaryMonthlyEl.addEventListener("input", () => {
+      const monthly = clampNumber(salaryMonthlyEl.value, { min: 0 });
+      salaryAnnualEl.value = String(monthToYear(monthly));
     });
   }
 
