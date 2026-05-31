@@ -1357,3 +1357,31 @@ h1 {
     line-height: 1.45;
     resize: vertical;
 }
+
+/* Advice card */
+.advice-card {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(99, 102, 241, 0.18);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.advice-card strong {
+    color: var(--text-primary);
+}
+
+.advice-card .advice-title {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+    font-weight: 800;
+}
+
+.advice-card .advice-muted {
+    color: var(--text-muted);
+    font-size: 13px;
+}

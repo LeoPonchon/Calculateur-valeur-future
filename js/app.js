@@ -141,6 +141,143 @@ function computeTaxesOnWithdrawal({ withdrawalGross, balanceBefore, contributed,
   return { taxes };
 }
 
+function withdrawTotalWithOrder({
+  totalAmount,
+  first: { balance: firstBalance, contributed: firstContributed, taxRate: firstTaxRate },
+  second: { balance: secondBalance, contributed: secondContributed, taxRate: secondTaxRate },
+}) {
+  const fromFirst = Math.min(totalAmount, firstBalance);
+  const firstTaxes = computeTaxesOnWithdrawal({
+    withdrawalGross: fromFirst,
+    balanceBefore: firstBalance,
+    contributed: firstContributed,
+    taxRate: firstTaxRate,
+  }).taxes;
+
+  firstBalance -= fromFirst;
+  const remaining = totalAmount - fromFirst;
+
+  const fromSecond = Math.min(remaining, secondBalance);
+  const secondTaxes = computeTaxesOnWithdrawal({
+    withdrawalGross: fromSecond,
+    balanceBefore: secondBalance,
+    contributed: secondContributed,
+    taxRate: secondTaxRate,
+  }).taxes;
+  secondBalance -= fromSecond;
+
+  return {
+    fromFirst,
+    fromSecond,
+    firstBalance,
+    secondBalance,
+    taxes: firstTaxes + secondTaxes,
+    firstTaxes,
+    secondTaxes,
+  };
+}
+
+function simulateTotalWithdrawalStrategy({
+  initial,
+  annualContribution,
+  contributingYears,
+  startingAge,
+  retirementAge,
+  totalWithdrawalAmount,
+  peaRate,
+  ctoRate,
+  strategy,
+}) {
+  const contributionEndAge = startingAge + contributingYears;
+  const retirementStartAge = Math.max(startingAge, retirementAge);
+
+  let age = startingAge;
+
+  let peaBalance = 0;
+  let peaContributed = 0;
+  let ctoBalance = 0;
+  let ctoContributed = 0;
+
+  let totalPeaTaxes = 0;
+  let totalCtoTaxes = 0;
+
+  // Initial allocation
+  {
+    const allocation = allocateToPeaAndCto({ desiredContribution: initial, peaContributed });
+    peaBalance += allocation.toPea;
+    peaContributed += allocation.toPea;
+    ctoBalance += allocation.toCto;
+    ctoContributed += allocation.toCto;
+  }
+
+  // Accumulation/attente until retirement start age
+  while (age < retirementStartAge) {
+    const peaGain = peaBalance * peaRate;
+    const ctoGain = ctoBalance * ctoRate;
+
+    const shouldContribute = age < contributionEndAge;
+    const allocation = shouldContribute
+      ? allocateToPeaAndCto({ desiredContribution: annualContribution, peaContributed })
+      : { toPea: 0, toCto: 0 };
+
+    peaBalance = peaBalance + peaGain + allocation.toPea;
+    peaContributed += allocation.toPea;
+
+    ctoBalance = ctoBalance + ctoGain + allocation.toCto;
+    ctoContributed += allocation.toCto;
+
+    age += 1;
+  }
+
+  const peaAtStart = peaBalance;
+  const ctoAtStart = ctoBalance;
+
+  // Retirement years
+  let retirementYears = 0;
+  let firstYearSplit = { pea: 0, cto: 0 };
+
+  while (peaBalance + ctoBalance > 0 && retirementYears < MAX_RETIREMENT_YEARS) {
+    peaBalance += peaBalance * peaRate;
+    ctoBalance += ctoBalance * ctoRate;
+
+    let w;
+    if (strategy === "cto_first") {
+      w = withdrawTotalWithOrder({
+        totalAmount: totalWithdrawalAmount,
+        first: { balance: ctoBalance, contributed: ctoContributed, taxRate: CTO_TAX_RATE },
+        second: { balance: peaBalance, contributed: peaContributed, taxRate: PEA_TAX_RATE },
+      });
+      ctoBalance = w.firstBalance;
+      peaBalance = w.secondBalance;
+      totalCtoTaxes += w.firstTaxes;
+      totalPeaTaxes += w.secondTaxes;
+      if (retirementYears === 0) firstYearSplit = { pea: w.fromSecond, cto: w.fromFirst };
+    } else {
+      w = withdrawTotalWithOrder({
+        totalAmount: totalWithdrawalAmount,
+        first: { balance: peaBalance, contributed: peaContributed, taxRate: PEA_TAX_RATE },
+        second: { balance: ctoBalance, contributed: ctoContributed, taxRate: CTO_TAX_RATE },
+      });
+      peaBalance = w.firstBalance;
+      ctoBalance = w.secondBalance;
+      totalPeaTaxes += w.firstTaxes;
+      totalCtoTaxes += w.secondTaxes;
+      if (retirementYears === 0) firstYearSplit = { pea: w.fromFirst, cto: w.fromSecond };
+    }
+
+    retirementYears += 1;
+  }
+
+  return {
+    retirementYears,
+    finalTotal: peaBalance + ctoBalance,
+    totalTaxes: totalPeaTaxes + totalCtoTaxes,
+    firstYearSplit,
+    peaAtStart,
+    ctoAtStart,
+  };
+}
+
 function simulate({
   initial,
   annualContribution,
@@ -337,6 +474,51 @@ function setResult(summary) {
     capWarningEl.textContent = summary.capWarning || "";
     capWarningEl.style.display = summary.capWarning ? "block" : "none";
   }
+}
+
+function setWithdrawalAdvice({ inputs, simulation }) {
+  const el = document.getElementById("withdraw-advice");
+  if (!el) return;
+
+  const totalAnnual = clampNumber(inputs.peaWithdrawalAmount, { min: 0 }) + clampNumber(inputs.ctoWithdrawalAmount, { min: 0 });
+
+  if (totalAnnual <= 0) {
+    el.innerHTML = `<span class="advice-title">Conseil de retrait</span>
+      <span class="advice-muted">Renseignez un retrait (mensuel ou annuel) pour obtenir une recommandation PEA/CTO.</span>`;
+    return;
+  }
+
+  const best = simulateTotalWithdrawalStrategy({
+    ...inputs,
+    totalWithdrawalAmount: totalAnnual,
+    strategy: "cto_first",
+  });
+  const worst = simulateTotalWithdrawalStrategy({
+    ...inputs,
+    totalWithdrawalAmount: totalAnnual,
+    strategy: "pea_first",
+  });
+
+  const bestSplit = best.firstYearSplit;
+  const totalFirstYear = bestSplit.pea + bestSplit.cto || 1;
+  const ratioCto = bestSplit.cto / totalFirstYear;
+  const ratioPea = bestSplit.pea / totalFirstYear;
+
+  const yearsGain = best.retirementYears - worst.retirementYears;
+  const taxesDiff = worst.totalTaxes - best.totalTaxes;
+
+  el.innerHTML = `
+    <span class="advice-title">Conseil simple (objectif : total le plus “exponentiel”)</span>
+    <div><strong>Retirer d’abord du CTO</strong>, puis du PEA une fois le CTO vidé.</div>
+    <div class="advice-muted">Idée : garder le PEA investi le plus longtemps possible (fiscalité plus douce sur les plus-values retirées dans ce modèle).</div>
+    <div style="margin-top: 8px;">
+      <strong>Estimation “meilleur cas”</strong> (1ʳᵉ année de retraite, pour un total de ${formatMoney(totalAnnual)} € / an) :
+      CTO ${formatMoney(bestSplit.cto)} € (${Math.round(ratioCto * 100)}%) · PEA ${formatMoney(bestSplit.pea)} € (${Math.round(ratioPea * 100)}%).
+    </div>
+    <div class="advice-muted" style="margin-top: 6px;">
+      Comparaison rapide (CTO→PEA vs PEA→CTO) : ${yearsGain >= 0 ? "+" : ""}${yearsGain} an(s) de retraite simulés, et ${formatMoney(Math.round(taxesDiff))} € d’impôts en moins (ordre de grandeur).
+    </div>
+  `;
 }
 
 function setIncomeSummary({ netIncome, expensesTotal, availableSavings }) {
@@ -546,6 +728,7 @@ function calculateAndRender() {
 
   setIncomeSummary(inputs);
   setResult(simulation);
+  setWithdrawalAdvice({ inputs, simulation });
   displayChart(simulation.yearlyData);
   displayPEATable(simulation.yearlyData);
   displayCTOTable(simulation.yearlyData);
