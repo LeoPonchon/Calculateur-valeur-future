@@ -1,335 +1,311 @@
-// Simulateur PEA + Compte Titres - Calcul année par année avec courbe
+// Simulateur PEA + Compte Titres - calcul année par année + graphique
+
+const PEA_CONTRIBUTION_CAP_EUR = 150_000;
+const PEA_TAX_RATE = 0.172; // Prélèvements sociaux (hypothèse simplifiée)
+const CTO_TAX_RATE = 0.3; // Flat tax (hypothèse simplifiée)
+const MAX_RETIREMENT_YEARS = 50;
 
 let chart = null;
-const PEA_CAPITAL_LIMIT = 150000; // Plafond de versement du PEA en France
-const PEA_TAX_RATE = 0.172; // 17.2% prélèvements sociaux (PEA ouvert depuis 5 ans) - appliqué sur les plus-values au retrait uniquement
-const CT_TAX_RATE = 0.3; // 30% flat tax (17.2% prélèvements sociaux + 12.8% impôt) - appliqué sur les plus-values au retrait uniquement
 
-function calculate() {
-  // Récupérer les valeurs PEA avec validation (valeurs positives ou nulles)
-  const initial = Math.max(
-    0,
-    parseFloat(document.getElementById("initial").value) || 0,
+function clampNumber(value, { min = 0, max = Number.POSITIVE_INFINITY } = {}) {
+  const numberValue = Number(value);
+  if (!Number.isFinite(numberValue)) return 0;
+  return Math.min(max, Math.max(min, numberValue));
+}
+
+function formatMoney(amount) {
+  return Math.round(amount).toLocaleString("fr-FR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+}
+
+function readInputs() {
+  const initial = clampNumber(document.getElementById("initial").value, {
+    min: 0,
+  });
+  const annualContribution = clampNumber(
+    document.getElementById("annual-contribution").value,
+    { min: 0 },
   );
-  const annualContribution = Math.max(
-    0,
-    parseFloat(document.getElementById("annual-contribution").value) || 0,
+  const contributingYears = Math.floor(
+    clampNumber(document.getElementById("contributing-years").value, { min: 0 }),
   );
-  const contributingYears = Math.max(
-    0,
-    parseFloat(document.getElementById("contributing-years").value) || 0,
-  );
-  const peaWithdrawalAmount = Math.max(
-    0,
-    parseFloat(document.getElementById("pea-withdrawal").value) || 0,
-  );
-  const ctWithdrawalAmount = Math.max(
-    0,
-    parseFloat(document.getElementById("ct-withdrawal").value) || 0,
-  );
-  const rate = Math.max(
-    -50,
-    Math.min(100, parseFloat(document.getElementById("return").value) || 0),
-  );
-  const startingAge = Math.max(
-    0,
-    parseFloat(document.getElementById("starting-age").value) || 0,
+  const startingAge = Math.floor(
+    clampNumber(document.getElementById("starting-age").value, { min: 0 }),
   );
 
-  // Récupérer uniquement le rendement Compte Titres
-  const ctRate = Math.max(
-    -50,
-    Math.min(100, parseFloat(document.getElementById("ct-return").value) || 0),
+  const peaWithdrawalAmount = clampNumber(
+    document.getElementById("pea-withdrawal").value,
+    { min: 0 },
+  );
+  const ctoWithdrawalAmount = clampNumber(
+    document.getElementById("ct-withdrawal").value,
+    { min: 0 },
   );
 
-  // Calculer automatiquement l'âge de retraite
-  const retirementAge = startingAge + contributingYears;
-
-  const r = rate / 100;
-  const ctR = ctRate / 100;
-
-  // Calculer année par année
-  const yearlyData = [];
-  let balance = initial;
-  let totalContributed = initial;
-  let currentAge = startingAge;
-  let capReachedAge = null;
-  let capReachedMessage = "";
-
-  // Variables Compte Titres (commence à 0, alimenté automatiquement par le PEA)
-  let ctBalance = 0;
-  let ctTotalContributed = 0;
-  let peaFull = false; // Indicateur si le PEA est plein
-  let ctContribution = 0; // Versement CT de l'année courante
-
-  // Vérifier si le versement initial dépasse déjà le plafond
-  if (totalContributed > PEA_CAPITAL_LIMIT) {
-    capReachedMessage = `⚠️ Attention: Votre versement initial de ${formatMoney(initial)} € dépasse le plafond PEA de ${formatMoney(PEA_CAPITAL_LIMIT)} € !`;
-  }
-
-  // Phase 1: Accumulation jusqu'à l'âge de retraite
-  while (currentAge < retirementAge) {
-    ctContribution = 0; // Reset CT contribution at the start of each year
-
-    // Phase d'accumulation : PAS d'imposition, on utilise le gain brut complet
-    // L'imposition sera appliquée au moment des retraits (phase de retraite)
-    const grossGainPEA = balance * r;
-
-    const grossGainCT = ctBalance * ctR;
-
-    // Vérifier si on atteint le plafond du PEA
-    let actualContribution = annualContribution;
-    let isCapReached = false;
-
-    if (totalContributed < PEA_CAPITAL_LIMIT) {
-      // Il reste de la marge, vérifier si le versement annuel dépasse le plafond
-      const remainingCap = PEA_CAPITAL_LIMIT - totalContributed;
-      if (actualContribution > remainingCap) {
-        // Le versement dépasse le plafond, on verse le reste sur le PEA et le surplus sur le CT
-        const peaContribution = remainingCap;
-        ctContribution = actualContribution - remainingCap;
-
-        actualContribution = peaContribution;
-        isCapReached = true;
-        peaFull = true;
-
-        if (capReachedAge === null) {
-          capReachedAge = currentAge + 1;
-          capReachedMessage = `🚫 Plafond PEA atteint à ${capReachedAge} ans ! Le surplus (${formatMoney(ctContribution)} €) est versé sur le Compte Titres.`;
-        }
-
-        // Verser le surplus sur le CT
-        ctTotalContributed += ctContribution;
-      }
-    } else {
-      // Plafond déjà atteint, tout va sur le CT
-      actualContribution = 0;
-      isCapReached = true;
-      peaFull = true;
-      ctContribution = annualContribution;
-
-      if (capReachedAge === null) {
-        capReachedAge = currentAge + 1;
-        capReachedMessage = `🚫 Plafond PEA déjà atteint ! Les versements continuent sur le Compte Titres.`;
-      }
-
-      // Verser tout sur le CT
-      ctTotalContributed += ctContribution;
-    }
-
-    // Ajouter le gain NET d'impôts au PEA
-    balance = balance + grossGainPEA + actualContribution;
-    totalContributed += actualContribution;
-    currentAge++;
-
-    // Calcul Compte Titres pour cette année (avec gain brut, pas d'impôt)
-    ctBalance = ctBalance + grossGainCT + ctContribution;
-    // ctContribution contient le versement CT de l'année courante
-
-    yearlyData.push({
-      age: currentAge,
-      balance: balance,
-      ctBalance: ctBalance,
-      totalFinancial: balance + ctBalance,
-      contributed: totalContributed,
-      ctContributed: ctTotalContributed,
-      actualContribution: actualContribution,
-      ctContribution: ctContribution,
-      phase: "Accumulation",
-      capReached: isCapReached,
-      // Stocker les gains bruts pour calculer l'impôt au retrait
-      grossGainPEA: grossGainPEA,
-      grossGainCT: grossGainCT,
-      // Suivre le capital investi pour calculer le ratio plus-value au retrait
-      peaCapitalInvested: totalContributed,
-      ctCapitalInvested: ctTotalContributed,
-    });
-  }
-
-  // Phase 2: Retraite (retraits à partir de l'âge de retraite)
-  let netValueAtRetirement = balance + ctBalance;
-  let retirementYears = 0;
-  const maxRetirementYears = 50;
-
-  // Récupérer le capital investi à la fin de la phase d'accumulation (une seule fois)
-  const lastAccumulationYear = yearlyData[yearlyData.length - 1];
-  const peaCapitalInvested = lastAccumulationYear.peaCapitalInvested || 0;
-  const ctCapitalInvested = lastAccumulationYear.ctCapitalInvested || 0;
-
-  while (
-    (balance > 0 || ctBalance > 0) &&
-    retirementYears < maxRetirementYears
-  ) {
-    // Calculer les gains bruts
-    const grossGainPEA = balance * r;
-    const grossGainCT = ctBalance * ctR;
-
-    // Ajouter les gains bruts (avant impôt) au PEA
-    balance = balance + grossGainPEA;
-    ctBalance = ctBalance + grossGainCT;
-
-    // Calculer les retraits et l'impôt sur les plus-values
-    let peaWithdrawal = 0;
-    let ctWithdrawal = 0;
-    let peaTaxableGain = 0; // Part de plus-value imposée dans le retrait PEA
-    let ctTaxableGain = 0; // Part de plus-value imposée dans le retrait CT
-
-    // Retrait du PEA (selon le choix de l'utilisateur)
-    if (peaWithdrawalAmount > 0 && balance > 0) {
-      peaWithdrawal = Math.min(peaWithdrawalAmount, balance);
-
-      // Calculer la part de plus-value dans le retrait PEA
-      // Ratio : (valeur totale - capital investi) / valeur totale
-      const peaGainRatio = Math.max(
-        0,
-        (balance - peaCapitalInvested) / balance,
-      );
-      peaTaxableGain = peaWithdrawal * peaGainRatio;
-
-      balance -= peaWithdrawal;
-    }
-
-    // Retrait du Compte Titres (selon le choix de l'utilisateur)
-    if (ctWithdrawalAmount > 0 && ctBalance > 0) {
-      ctWithdrawal = Math.min(ctWithdrawalAmount, ctBalance);
-
-      // Calculer la part de plus-value dans le retrait CT
-      // Ratio : (valeur totale - capital investi) / valeur totale
-      const ctGainRatio = Math.max(
-        0,
-        (ctBalance - ctCapitalInvested) / ctBalance,
-      );
-      ctTaxableGain = ctWithdrawal * ctGainRatio;
-
-      ctBalance -= ctWithdrawal;
-    }
-
-    // Appliquer l'impôt sur les plus-values retirées
-    const peaTaxesPaid = peaTaxableGain * PEA_TAX_RATE;
-    const ctTaxesPaid = ctTaxableGain * CT_TAX_RATE;
-
-    // Déduire les impôts des soldes (on considère que les impôts sont prélevés séparément)
-    // Pour simplifier, on ne les déduit pas ici car ils sont payés à part
-    currentAge++;
-    retirementYears++;
-
-    yearlyData.push({
-      age: currentAge,
-      balance: balance,
-      ctBalance: ctBalance,
-      totalFinancial: balance + ctBalance,
-      contributed: totalContributed,
-      ctContributed: ctTotalContributed,
-      actualContribution: 0,
-      ctContribution: 0,
-      phase: "Retraite",
-      capReached: false,
-      // Stocker les montants retirés et les impôts payés sur les plus-values
-      peaWithdrawal: peaWithdrawal,
-      ctWithdrawal: ctWithdrawal,
-      peaTaxableGain: peaTaxableGain,
-      ctTaxableGain: ctTaxableGain,
-      peaTaxesPaid: peaTaxableGain * PEA_TAX_RATE,
-      ctTaxesPaid: ctTaxableGain * CT_TAX_RATE,
-    });
-  }
-
-  // Afficher le résultat
-  const finalProperty = yearlyData[yearlyData.length - 1];
-  const finalPatrimony = finalProperty.totalFinancial;
-
-  // Calculer le total des impôts payés pendant la retraite
-  let totalPeaTaxes = 0;
-  let totalCtTaxes = 0;
-  yearlyData.forEach((data) => {
-    if (data.phase === "Retraite") {
-      totalPeaTaxes += data.peaTaxesPaid || 0;
-      totalCtTaxes += data.ctTaxesPaid || 0;
-    }
+  const peaRatePercent = clampNumber(document.getElementById("return").value, {
+    min: -50,
+    max: 100,
+  });
+  const ctoRatePercent = clampNumber(document.getElementById("ct-return").value, {
+    min: -50,
+    max: 100,
   });
 
-  let resultText = `${formatMoney(finalPatrimony)} € de patrimoine financier à ${retirementAge} ans\n`;
-  resultText += `💰 PEA: ${formatMoney(finalProperty.balance)} € (brut)\n`;
-  resultText += `📈 Compte Titres: ${formatMoney(finalProperty.ctBalance)} € (brut)\n`;
-  if (totalPeaTaxes + totalCtTaxes > 0) {
-    resultText += `💸 Impôts payés sur les plus-values retirées: ${formatMoney(totalPeaTaxes + totalCtTaxes)} €\n`;
-    resultText += `  • PEA: ${formatMoney(totalPeaTaxes)} € (17.2%)\n`;
-    resultText += `  • CT: ${formatMoney(totalCtTaxes)} € (30%)\n`;
+  return {
+    initial,
+    annualContribution,
+    contributingYears,
+    startingAge,
+    peaWithdrawalAmount,
+    ctoWithdrawalAmount,
+    peaRate: peaRatePercent / 100,
+    ctoRate: ctoRatePercent / 100,
+  };
+}
+
+function allocateToPeaAndCto({ desiredContribution, peaContributed }) {
+  const remainingPeaCap = Math.max(0, PEA_CONTRIBUTION_CAP_EUR - peaContributed);
+  const toPea = Math.min(desiredContribution, remainingPeaCap);
+  const toCto = Math.max(0, desiredContribution - toPea);
+  return { toPea, toCto, remainingPeaCap };
+}
+
+function computeTaxesOnWithdrawal({ withdrawalGross, balanceBefore, contributed, taxRate }) {
+  if (withdrawalGross <= 0 || balanceBefore <= 0) return { taxes: 0 };
+
+  const gains = Math.max(0, balanceBefore - contributed);
+  if (gains <= 0) return { taxes: 0 };
+
+  const gainsShare = gains / balanceBefore;
+  const gainsPartWithdrawn = withdrawalGross * gainsShare;
+  const taxes = gainsPartWithdrawn * taxRate;
+  return { taxes };
+}
+
+function simulate({
+  initial,
+  annualContribution,
+  contributingYears,
+  startingAge,
+  peaWithdrawalAmount,
+  ctoWithdrawalAmount,
+  peaRate,
+  ctoRate,
+}) {
+  const retirementAge = startingAge + contributingYears;
+
+  let age = startingAge;
+
+  let peaBalance = 0;
+  let peaContributed = 0;
+  let ctoBalance = 0;
+  let ctoContributed = 0;
+
+  let totalPeaTaxes = 0;
+  let totalCtoTaxes = 0;
+
+  const yearlyData = [];
+
+  let capWarning = "";
+  let capReachedAge = null;
+
+  // Versement initial : PEA jusqu'au plafond, surplus vers CTO
+  {
+    const allocation = allocateToPeaAndCto({
+      desiredContribution: initial,
+      peaContributed,
+    });
+
+    peaBalance += allocation.toPea;
+    peaContributed += allocation.toPea;
+
+    ctoBalance += allocation.toCto;
+    ctoContributed += allocation.toCto;
+
+    if (allocation.toCto > 0) {
+      capWarning = `Versement initial > plafond PEA : ${formatMoney(
+        allocation.toCto,
+      )} € versés sur le CTO.`;
+      capReachedAge = startingAge;
+    }
   }
-  resultText += `⏱️ Soit ${retirementYears} ans de retraite`;
 
-  if (retirementYears >= maxRetirementYears) {
-    resultText += ` (rente viagère ! 🎉)`;
+  // Phase 1 : accumulation (aucune fiscalité appliquée ici)
+  while (age < retirementAge) {
+    const peaGain = peaBalance * peaRate;
+    const ctoGain = ctoBalance * ctoRate;
+
+    const allocation = allocateToPeaAndCto({
+      desiredContribution: annualContribution,
+      peaContributed,
+    });
+
+    if (allocation.toCto > 0 && capReachedAge === null) {
+      capReachedAge = age + 1;
+      capWarning = `Plafond PEA atteint à ${capReachedAge} ans : ${formatMoney(
+        allocation.toCto,
+      )} € / an versés sur le CTO.`;
+    }
+
+    peaBalance = peaBalance + peaGain + allocation.toPea;
+    peaContributed += allocation.toPea;
+
+    ctoBalance = ctoBalance + ctoGain + allocation.toCto;
+    ctoContributed += allocation.toCto;
+
+    age += 1;
+
+    yearlyData.push({
+      age,
+      phase: "Accumulation",
+      balance: peaBalance,
+      contributed: peaContributed,
+      actualContribution: allocation.toPea,
+      ctBalance: ctoBalance,
+      ctContributed: ctoContributed,
+      ctContribution: allocation.toCto,
+      peaWithdrawal: 0,
+      ctWithdrawal: 0,
+      peaTaxesPaid: 0,
+      ctTaxesPaid: 0,
+      totalPeaTaxes,
+      totalCtoTaxes,
+    });
   }
 
-  document.getElementById("result").textContent = resultText;
+  const valueAtRetirement = peaBalance + ctoBalance;
 
-  // Afficher le message de plafond atteint
-  const capWarningElement = document.getElementById("cap-warning");
-  if (capWarningElement) {
-    capWarningElement.textContent = capReachedMessage;
-    capWarningElement.style.display = capReachedMessage ? "block" : "none";
+  // Phase 2 : retraite (retraits + fiscalité simplifiée au retrait)
+  let retirementYears = 0;
+  while (peaBalance + ctoBalance > 0 && retirementYears < MAX_RETIREMENT_YEARS) {
+    const peaGain = peaBalance * peaRate;
+    const ctoGain = ctoBalance * ctoRate;
+
+    peaBalance += peaGain;
+    ctoBalance += ctoGain;
+
+    const peaWithdrawal = Math.min(peaWithdrawalAmount, peaBalance);
+    const peaTaxes = computeTaxesOnWithdrawal({
+      withdrawalGross: peaWithdrawal,
+      balanceBefore: peaBalance,
+      contributed: peaContributed,
+      taxRate: PEA_TAX_RATE,
+    }).taxes;
+    peaBalance -= peaWithdrawal;
+    totalPeaTaxes += peaTaxes;
+
+    const ctWithdrawal = Math.min(ctoWithdrawalAmount, ctoBalance);
+    const ctTaxes = computeTaxesOnWithdrawal({
+      withdrawalGross: ctWithdrawal,
+      balanceBefore: ctoBalance,
+      contributed: ctoContributed,
+      taxRate: CTO_TAX_RATE,
+    }).taxes;
+    ctoBalance -= ctWithdrawal;
+    totalCtoTaxes += ctTaxes;
+
+    age += 1;
+    retirementYears += 1;
+
+    yearlyData.push({
+      age,
+      phase: "Retraite",
+      balance: Math.max(0, peaBalance),
+      contributed: peaContributed,
+      actualContribution: 0,
+      ctBalance: Math.max(0, ctoBalance),
+      ctContributed: ctoContributed,
+      ctContribution: 0,
+      peaWithdrawal,
+      ctWithdrawal,
+      peaTaxesPaid: peaTaxes,
+      ctTaxesPaid: ctTaxes,
+      totalPeaTaxes,
+      totalCtoTaxes,
+    });
   }
 
-  // Afficher la courbe
-  displayChart(yearlyData);
+  return {
+    retirementAge,
+    retirementYears,
+    valueAtRetirement,
+    peaValueAtRetirement: yearlyData.find((d) => d.age === retirementAge)?.balance ?? peaBalance,
+    ctoValueAtRetirement:
+      yearlyData.find((d) => d.age === retirementAge)?.ctBalance ?? ctoBalance,
+    peaContributed,
+    ctoContributed,
+    totalTaxes: totalPeaTaxes + totalCtoTaxes,
+    totalPeaTaxes,
+    totalCtoTaxes,
+    capWarning,
+    capReachedAge,
+    yearlyData,
+  };
+}
 
-  // Afficher les trois tableaux
-  displayPEATable(yearlyData);
-  displayCTOTable(yearlyData);
-  displayWithdrawalsTable(yearlyData);
+function setResult(summary) {
+  const lines = [];
+  lines.push(
+    `${formatMoney(summary.valueAtRetirement)} € de patrimoine financier à ${summary.retirementAge} ans`,
+  );
+  lines.push(`PEA : ${formatMoney(summary.peaValueAtRetirement)} € (brut)`);
+  lines.push(`CTO : ${formatMoney(summary.ctoValueAtRetirement)} € (brut)`);
+  lines.push(
+    `Versements PEA : ${formatMoney(summary.peaContributed)} € / ${formatMoney(
+      PEA_CONTRIBUTION_CAP_EUR,
+    )} €`,
+  );
+  if (summary.ctoContributed > 0) {
+    lines.push(`Versements CTO : ${formatMoney(summary.ctoContributed)} €`);
+  }
+  if (summary.totalTaxes > 0) {
+    lines.push(`Impôts payés sur les plus-values retirées : ${formatMoney(summary.totalTaxes)} €`);
+    lines.push(`  - PEA : ${formatMoney(summary.totalPeaTaxes)} € (17,2%)`);
+    lines.push(`  - CTO : ${formatMoney(summary.totalCtoTaxes)} € (30%)`);
+  }
+  lines.push(`Soit ${summary.retirementYears} ans de retraite simulés`);
+
+  document.getElementById("result").textContent = lines.join("\n");
+
+  const capWarningEl = document.getElementById("cap-warning");
+  if (capWarningEl) {
+    capWarningEl.textContent = summary.capWarning || "";
+    capWarningEl.style.display = summary.capWarning ? "block" : "none";
+  }
 }
 
 function displayChart(yearlyData) {
   const ctx = document.getElementById("chart").getContext("2d");
-
-  if (chart) {
-    chart.destroy();
-  }
-
-  const ages = yearlyData.map((d) => d.age);
-  const peaBalances = yearlyData.map((d) => d.balance);
-  const ctBalances = yearlyData.map((d) => d.ctBalance);
-  const totalFinancial = yearlyData.map((d) => d.totalFinancial);
-  const totalContributed = yearlyData.map(
-    (d) => d.contributed + d.ctContributed,
-  );
+  if (chart) chart.destroy();
 
   chart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: ages,
+      labels: yearlyData.map((d) => `${d.age} ans`),
       datasets: [
         {
-          label: "Total financier",
-          data: totalFinancial,
-          borderColor: "#8b5cf6",
-          backgroundColor: "rgba(139, 92, 246, 0.1)",
+          label: "Total (PEA + CTO)",
+          data: yearlyData.map((d) => d.balance + d.ctBalance),
+          borderColor: "#60a5fa",
+          backgroundColor: "rgba(96, 165, 250, 0.12)",
           fill: true,
-          tension: 0.4,
+          tension: 0.12,
         },
         {
           label: "PEA",
-          data: peaBalances,
-          borderColor: "#3b82f6",
-          backgroundColor: "rgba(59, 130, 246, 0.1)",
-          tension: 0.4,
+          data: yearlyData.map((d) => d.balance),
+          borderColor: "#34d399",
+          backgroundColor: "transparent",
+          tension: 0.12,
         },
         {
-          label: "Compte Titres",
-          data: ctBalances,
-          borderColor: "#06b6d4",
-          backgroundColor: "rgba(6, 182, 212, 0.1)",
-          borderDash: [5, 5],
-          tension: 0.4,
-        },
-        {
-          label: "Total versé",
-          data: totalContributed,
-          borderColor: "#9ca3af",
-          backgroundColor: "rgba(156, 163, 175, 0.1)",
-          borderDash: [2, 2],
-          tension: 0.4,
+          label: "CTO",
+          data: yearlyData.map((d) => d.ctBalance),
+          borderColor: "#fbbf24",
+          backgroundColor: "transparent",
+          tension: 0.12,
         },
       ],
     },
@@ -337,33 +313,10 @@ function displayChart(yearlyData) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        title: {
-          display: true,
-          text: "Évolution du patrimoine dans le temps",
-          color: "#f9fafb",
-          font: {
-            size: 18,
-            weight: "bold",
-          },
-          padding: {
-            bottom: 20,
-          },
-        },
-        legend: {
-          labels: {
-            color: "#d1d5db",
-          },
-        },
+        legend: { labels: { color: "#f9fafb" } },
         tooltip: {
           callbacks: {
-            label: function (context) {
-              let label = context.dataset.label || "";
-              if (label) {
-                label += ": ";
-              }
-              label += formatMoney(context.parsed.y) + " €";
-              return label;
-            },
+            label: (context) => `${context.dataset.label} : ${formatMoney(context.raw)} €`,
           },
         },
       },
@@ -371,32 +324,17 @@ function displayChart(yearlyData) {
         y: {
           beginAtZero: true,
           ticks: {
-            color: "#9ca3af",
-            callback: function (value) {
-              return formatMoney(value) + " €";
-            },
+            color: "#f9fafb",
+            callback: (value) => `${formatMoney(value)} €`,
           },
-          grid: {
-            color: "rgba(255, 255, 255, 0.05)",
-          },
+          grid: { color: "rgba(255, 255, 255, 0.10)" },
         },
         x: {
-          ticks: {
-            color: "#9ca3af",
-          },
-          grid: {
-            color: "rgba(255, 255, 255, 0.05)",
-          },
+          ticks: { color: "#f9fafb" },
+          grid: { color: "rgba(255, 255, 255, 0.10)" },
         },
       },
     },
-  });
-}
-
-function formatMoney(amount) {
-  return Math.round(amount).toLocaleString("fr-FR", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
   });
 }
 
@@ -407,38 +345,28 @@ function displayPEATable(yearlyData) {
   yearlyData.forEach((data, index) => {
     const row = document.createElement("tr");
 
-    // Calculer le gain annuel PEA (variation de la valeur hors nouveaux versements)
-    let yearlyGainPEA = 0;
+    let yearlyGain = 0;
     if (index === 0) {
-      yearlyGainPEA = data.balance - data.contributed;
+      yearlyGain = data.balance - data.contributed;
     } else {
-      const previousData = yearlyData[index - 1];
-      const balanceChange = data.balance - previousData.balance;
-      const contributionChange = data.contributed - previousData.contributed;
-      yearlyGainPEA = balanceChange - contributionChange;
+      const previous = yearlyData[index - 1];
+      const balanceChange = data.balance - previous.balance;
+      const contributedChange = data.contributed - previous.contributed;
+      yearlyGain = balanceChange - contributedChange;
     }
+    const totalGain = data.balance - data.contributed;
 
-    // Calculer le gain cumulé PEA
-    const totalGainPEA = data.balance - data.contributed;
-
-    // Classe pour la phase
     const phaseClass =
       data.phase === "Accumulation" ? "phase-accumulation" : "phase-retirement";
-
-    // Classes pour les gains
-    const yearlyGainClass = yearlyGainPEA >= 0 ? "text-success" : "text-danger";
-    const totalGainClass = totalGainPEA >= 0 ? "text-success" : "text-danger";
-    const yearlyGainSign = yearlyGainPEA >= 0 ? "+" : "";
-    const totalGainSign = totalGainPEA >= 0 ? "+" : "";
 
     row.innerHTML = `
       <td>${data.age} ans</td>
       <td><span class="${phaseClass}">${data.phase}</span></td>
       <td>${formatMoney(data.balance)} €</td>
-      <td>${data.actualContribution > 0 ? formatMoney(data.actualContribution) + " €" : "-"}</td>
+      <td>${data.actualContribution > 0 ? `${formatMoney(data.actualContribution)} €` : "-"}</td>
       <td>${formatMoney(data.contributed)} €</td>
-      <td class="${yearlyGainClass}">${yearlyGainSign}${formatMoney(yearlyGainPEA)} €</td>
-      <td class="${totalGainClass}">${totalGainSign}${formatMoney(totalGainPEA)} €</td>
+      <td class="${yearlyGain >= 0 ? "text-success" : "text-danger"}">${yearlyGain >= 0 ? "+" : ""}${formatMoney(yearlyGain)} €</td>
+      <td class="${totalGain >= 0 ? "text-success" : "text-danger"}">${totalGain >= 0 ? "+" : ""}${formatMoney(totalGain)} €</td>
     `;
 
     tbody.appendChild(row);
@@ -452,39 +380,28 @@ function displayCTOTable(yearlyData) {
   yearlyData.forEach((data, index) => {
     const row = document.createElement("tr");
 
-    // Calculer le gain annuel CT (variation de la valeur hors nouveaux versements)
-    let yearlyGainCT = 0;
+    let yearlyGain = 0;
     if (index === 0) {
-      yearlyGainCT = data.ctBalance - data.ctContributed;
+      yearlyGain = data.ctBalance - data.ctContributed;
     } else {
-      const previousData = yearlyData[index - 1];
-      const balanceChange = data.ctBalance - previousData.ctBalance;
-      const contributionChange =
-        data.ctContributed - previousData.ctContributed;
-      yearlyGainCT = balanceChange - contributionChange;
+      const previous = yearlyData[index - 1];
+      const balanceChange = data.ctBalance - previous.ctBalance;
+      const contributedChange = data.ctContributed - previous.ctContributed;
+      yearlyGain = balanceChange - contributedChange;
     }
+    const totalGain = data.ctBalance - data.ctContributed;
 
-    // Calculer le gain cumulé CT
-    const totalGainCT = data.ctBalance - data.ctContributed;
-
-    // Classe pour la phase
     const phaseClass =
       data.phase === "Accumulation" ? "phase-accumulation" : "phase-retirement";
-
-    // Classes pour les gains
-    const yearlyGainClass = yearlyGainCT >= 0 ? "text-success" : "text-danger";
-    const totalGainClass = totalGainCT >= 0 ? "text-success" : "text-danger";
-    const yearlyGainSign = yearlyGainCT >= 0 ? "+" : "";
-    const totalGainSign = totalGainCT >= 0 ? "+" : "";
 
     row.innerHTML = `
       <td>${data.age} ans</td>
       <td><span class="${phaseClass}">${data.phase}</span></td>
-      <td>${data.ctBalance > 0 ? formatMoney(data.ctBalance) + " €" : "-"}</td>
-      <td>${data.ctContribution > 0 ? formatMoney(data.ctContribution) + " €" : "-"}</td>
-      <td>${data.ctContributed > 0 ? formatMoney(data.ctContributed) + " €" : "-"}</td>
-      <td class="${yearlyGainClass}">${yearlyGainSign}${formatMoney(yearlyGainCT)} €</td>
-      <td class="${totalGainClass}">${totalGainSign}${formatMoney(totalGainCT)} €</td>
+      <td>${data.ctBalance > 0 ? `${formatMoney(data.ctBalance)} €` : "-"}</td>
+      <td>${data.ctContribution > 0 ? `${formatMoney(data.ctContribution)} €` : "-"}</td>
+      <td>${data.ctContributed > 0 ? `${formatMoney(data.ctContributed)} €` : "-"}</td>
+      <td class="${yearlyGain >= 0 ? "text-success" : "text-danger"}">${yearlyGain >= 0 ? "+" : ""}${formatMoney(yearlyGain)} €</td>
+      <td class="${totalGain >= 0 ? "text-success" : "text-danger"}">${totalGain >= 0 ? "+" : ""}${formatMoney(totalGain)} €</td>
     `;
 
     tbody.appendChild(row);
@@ -496,37 +413,47 @@ function displayWithdrawalsTable(yearlyData) {
   tbody.innerHTML = "";
 
   yearlyData.forEach((data) => {
-    // Afficher uniquement les années de retraite avec des retraits
     if (
-      data.phase === "Retraite" &&
-      (data.peaWithdrawal > 0 || data.ctWithdrawal > 0)
+      data.phase !== "Retraite" ||
+      (data.peaWithdrawal <= 0 && data.ctWithdrawal <= 0)
     ) {
-      const row = document.createElement("tr");
-
-      // Calculer les versements nets (après impôts)
-      const peaNetWithdrawal = data.peaWithdrawal - (data.peaTaxesPaid || 0);
-      const ctNetWithdrawal = data.ctWithdrawal - (data.ctTaxesPaid || 0);
-      const totalNet = peaNetWithdrawal + ctNetWithdrawal;
-      const totalTaxes = (data.peaTaxesPaid || 0) + (data.ctTaxesPaid || 0);
-
-      row.innerHTML = `
-        <td>${data.age} ans</td>
-        <td>${data.peaWithdrawal > 0 ? formatMoney(peaNetWithdrawal) + " €" : "-"}</td>
-        <td>${data.peaTaxesPaid > 0 ? formatMoney(data.peaTaxesPaid) + " €" : "-"}</td>
-        <td>${data.ctWithdrawal > 0 ? formatMoney(ctNetWithdrawal) + " €" : "-"}</td>
-        <td>${data.ctTaxesPaid > 0 ? formatMoney(data.ctTaxesPaid) + " €" : "-"}</td>
-        <td class="text-primary font-weight-bold">${formatMoney(totalNet)} €</td>
-        <td>${formatMoney(totalTaxes)} €</td>
-      `;
-
-      tbody.appendChild(row);
+      return;
     }
+
+    const row = document.createElement("tr");
+
+    const peaNet = data.peaWithdrawal - (data.peaTaxesPaid || 0);
+    const ctoNet = data.ctWithdrawal - (data.ctTaxesPaid || 0);
+    const totalNet = peaNet + ctoNet;
+    const totalTaxes = (data.peaTaxesPaid || 0) + (data.ctTaxesPaid || 0);
+
+    row.innerHTML = `
+      <td>${data.age} ans</td>
+      <td>${data.peaWithdrawal > 0 ? `${formatMoney(peaNet)} €` : "-"}</td>
+      <td>${data.peaTaxesPaid > 0 ? `${formatMoney(data.peaTaxesPaid)} €` : "-"}</td>
+      <td>${data.ctWithdrawal > 0 ? `${formatMoney(ctoNet)} €` : "-"}</td>
+      <td>${data.ctTaxesPaid > 0 ? `${formatMoney(data.ctTaxesPaid)} €` : "-"}</td>
+      <td class="text-primary font-weight-bold">${formatMoney(totalNet)} €</td>
+      <td>${formatMoney(totalTaxes)} €</td>
+    `;
+
+    tbody.appendChild(row);
   });
 }
 
-// Ajouter les écouteurs d'événements pour le calcul en temps réel
-document.addEventListener("DOMContentLoaded", function () {
-  const inputs = [
+function calculateAndRender() {
+  const inputs = readInputs();
+  const simulation = simulate(inputs);
+
+  setResult(simulation);
+  displayChart(simulation.yearlyData);
+  displayPEATable(simulation.yearlyData);
+  displayCTOTable(simulation.yearlyData);
+  displayWithdrawalsTable(simulation.yearlyData);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const inputIds = [
     "initial",
     "annual-contribution",
     "contributing-years",
@@ -537,13 +464,12 @@ document.addEventListener("DOMContentLoaded", function () {
     "ct-return",
   ];
 
-  inputs.forEach((id) => {
+  inputIds.forEach((id) => {
     const input = document.getElementById(id);
-    if (input) {
-      input.addEventListener("input", calculate);
-    }
+    if (!input) return;
+    input.addEventListener("input", calculateAndRender);
   });
 
-  // Calcul initial
-  calculate();
+  calculateAndRender();
 });
+
