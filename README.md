@@ -13,8 +13,8 @@ Simulateur statique (HTML/CSS/JS) pour estimer l'évolution d'un portefeuille en
 - Rendement annuel constant (même taux appliqué à la poche PEA et à la poche CTO).
 - Retraits annuels constants à partir de l'âge de retraite (à la fin des années de versement).
 - Retraits prélevés sur le PEA en priorité, puis sur le CTO.
+- Option : calculer le versement annuel à partir de `Salaire brut annuel × Net estimé` moins les dépenses annuelles.
 
 ## Lancer
 
 Ouvrir `index.html` dans un navigateur.
-

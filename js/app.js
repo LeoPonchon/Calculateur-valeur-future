@@ -7,6 +7,8 @@ const MAX_RETIREMENT_YEARS = 50;
 
 let chart = null;
 
+const STORAGE_KEY = "pea_simulator_v2";
+
 function clampNumber(value, { min = 0, max = Number.POSITIVE_INFINITY } = {}) {
   const numberValue = Number(value);
   if (!Number.isFinite(numberValue)) return 0;
@@ -21,10 +23,13 @@ function formatMoney(amount) {
 }
 
 function readInputs() {
+  const useAvailableSavings =
+    document.getElementById("use-available-savings")?.checked ?? false;
+
   const initial = clampNumber(document.getElementById("initial").value, {
     min: 0,
   });
-  const annualContribution = clampNumber(
+  const annualContributionManual = clampNumber(
     document.getElementById("annual-contribution").value,
     { min: 0 },
   );
@@ -53,6 +58,22 @@ function readInputs() {
     max: 100,
   });
 
+  const grossSalary = clampNumber(
+    document.getElementById("gross-salary")?.value ?? 0,
+    { min: 0 },
+  );
+  const netRatePercent = clampNumber(
+    document.getElementById("net-rate")?.value ?? 70,
+    { min: 0, max: 100 },
+  );
+  const netIncome = grossSalary * (netRatePercent / 100);
+  const expensesTotal = getExpensesTotal();
+  const availableSavings = netIncome - expensesTotal;
+
+  const annualContribution = useAvailableSavings
+    ? Math.max(0, availableSavings)
+    : annualContributionManual;
+
   return {
     initial,
     annualContribution,
@@ -62,6 +83,12 @@ function readInputs() {
     ctoWithdrawalAmount,
     peaRate: peaRatePercent / 100,
     ctoRate: ctoRatePercent / 100,
+    grossSalary,
+    netRatePercent,
+    netIncome,
+    expensesTotal,
+    availableSavings,
+    useAvailableSavings,
   };
 }
 
@@ -276,6 +303,22 @@ function setResult(summary) {
   }
 }
 
+function setIncomeSummary({ netIncome, expensesTotal, availableSavings }) {
+  const netIncomeEl = document.getElementById("net-income");
+  const expensesTotalEl = document.getElementById("expenses-total");
+  const availableSavingsEl = document.getElementById("available-savings");
+
+  if (netIncomeEl) netIncomeEl.textContent = `${formatMoney(netIncome)} €`;
+  if (expensesTotalEl)
+    expensesTotalEl.textContent = `${formatMoney(expensesTotal)} €`;
+
+  if (availableSavingsEl) {
+    availableSavingsEl.textContent = `${formatMoney(availableSavings)} €`;
+    availableSavingsEl.style.color =
+      availableSavings >= 0 ? "" : "var(--error)";
+  }
+}
+
 function displayChart(yearlyData) {
   const ctx = document.getElementById("chart").getContext("2d");
   if (chart) chart.destroy();
@@ -445,14 +488,160 @@ function calculateAndRender() {
   const inputs = readInputs();
   const simulation = simulate(inputs);
 
+  setIncomeSummary(inputs);
   setResult(simulation);
   displayChart(simulation.yearlyData);
   displayPEATable(simulation.yearlyData);
   displayCTOTable(simulation.yearlyData);
   displayWithdrawalsTable(simulation.yearlyData);
+
+  syncAnnualContributionUI(inputs);
+  saveState();
+}
+
+function getExpensesTotal() {
+  const rows = document.querySelectorAll("[data-expense-row]");
+  let total = 0;
+  rows.forEach((row) => {
+    const amountInput = row.querySelector("[data-expense-amount]");
+    total += clampNumber(amountInput?.value ?? 0, { min: 0 });
+  });
+  return total;
+}
+
+function createExpenseRow({ label = "", amount = 0 } = {}) {
+  const row = document.createElement("div");
+  row.className = "expense-row";
+  row.setAttribute("data-expense-row", "1");
+
+  const labelInput = document.createElement("input");
+  labelInput.type = "text";
+  labelInput.placeholder = "Ex : Loyer, courses, transports…";
+  labelInput.value = label;
+  labelInput.setAttribute("data-expense-label", "1");
+
+  const amountInput = document.createElement("input");
+  amountInput.type = "number";
+  amountInput.min = "0";
+  amountInput.step = "100";
+  amountInput.placeholder = "Montant €/an";
+  amountInput.value = String(amount || "");
+  amountInput.setAttribute("data-expense-amount", "1");
+
+  const removeButton = document.createElement("button");
+  removeButton.type = "button";
+  removeButton.className = "btn btn-danger btn-icon";
+  removeButton.setAttribute("aria-label", "Supprimer la dépense");
+  removeButton.textContent = "×";
+
+  const onAnyChange = () => calculateAndRender();
+  labelInput.addEventListener("input", onAnyChange);
+  amountInput.addEventListener("input", onAnyChange);
+  removeButton.addEventListener("click", () => {
+    row.remove();
+    calculateAndRender();
+  });
+
+  row.appendChild(labelInput);
+  row.appendChild(amountInput);
+  row.appendChild(removeButton);
+  return row;
+}
+
+function ensureAtLeastOneExpenseRow() {
+  const container = document.getElementById("expenses-list");
+  if (!container) return;
+  if (container.querySelectorAll("[data-expense-row]").length > 0) return;
+  container.appendChild(createExpenseRow({ label: "Dépenses", amount: 0 }));
+}
+
+function syncAnnualContributionUI({ useAvailableSavings, availableSavings }) {
+  const annualContributionEl = document.getElementById("annual-contribution");
+  if (!annualContributionEl) return;
+
+  annualContributionEl.disabled = useAvailableSavings;
+  annualContributionEl.classList.toggle("is-disabled", useAvailableSavings);
+
+  if (useAvailableSavings) {
+    annualContributionEl.value = String(Math.max(0, Math.round(availableSavings)));
+  }
+}
+
+function saveState() {
+  const state = {
+    theme: document.documentElement.getAttribute("data-theme") || "dark",
+    values: {
+      initial: document.getElementById("initial")?.value ?? "",
+      annualContribution: document.getElementById("annual-contribution")?.value ?? "",
+      contributingYears: document.getElementById("contributing-years")?.value ?? "",
+      startingAge: document.getElementById("starting-age")?.value ?? "",
+      peaReturn: document.getElementById("return")?.value ?? "",
+      peaWithdrawal: document.getElementById("pea-withdrawal")?.value ?? "",
+      ctoWithdrawal: document.getElementById("ct-withdrawal")?.value ?? "",
+      ctoReturn: document.getElementById("ct-return")?.value ?? "7",
+      grossSalary: document.getElementById("gross-salary")?.value ?? "",
+      netRate: document.getElementById("net-rate")?.value ?? "70",
+      useAvailableSavings: document.getElementById("use-available-savings")?.checked ?? false,
+    },
+    expenses: Array.from(document.querySelectorAll("[data-expense-row]")).map((row) => ({
+      label: row.querySelector("[data-expense-label]")?.value ?? "",
+      amount: row.querySelector("[data-expense-amount]")?.value ?? "",
+    })),
+  };
+
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // ignore
+  }
+}
+
+function restoreState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const state = JSON.parse(raw);
+
+    if (state?.values) {
+      const setValue = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.value = value ?? "";
+      };
+
+      setValue("initial", state.values.initial);
+      setValue("annual-contribution", state.values.annualContribution);
+      setValue("contributing-years", state.values.contributingYears);
+      setValue("starting-age", state.values.startingAge);
+      setValue("return", state.values.peaReturn);
+      setValue("pea-withdrawal", state.values.peaWithdrawal);
+      setValue("ct-withdrawal", state.values.ctoWithdrawal);
+      setValue("ct-return", state.values.ctoReturn);
+      setValue("gross-salary", state.values.grossSalary);
+      setValue("net-rate", state.values.netRate);
+
+      const checkbox = document.getElementById("use-available-savings");
+      if (checkbox) checkbox.checked = Boolean(state.values.useAvailableSavings);
+    }
+
+    const expensesContainer = document.getElementById("expenses-list");
+    if (expensesContainer) {
+      expensesContainer.innerHTML = "";
+      if (Array.isArray(state.expenses) && state.expenses.length > 0) {
+        state.expenses.forEach((e) =>
+          expensesContainer.appendChild(
+            createExpenseRow({ label: e.label, amount: Number(e.amount) || 0 }),
+          ),
+        );
+      }
+    }
+  } catch {
+    // ignore
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  restoreState();
+
   const inputIds = [
     "initial",
     "annual-contribution",
@@ -462,14 +651,27 @@ document.addEventListener("DOMContentLoaded", () => {
     "starting-age",
     "return",
     "ct-return",
+    "gross-salary",
+    "net-rate",
+    "use-available-savings",
   ];
 
   inputIds.forEach((id) => {
     const input = document.getElementById(id);
     if (!input) return;
     input.addEventListener("input", calculateAndRender);
+    input.addEventListener("change", calculateAndRender);
   });
 
+  const addExpenseButton = document.getElementById("add-expense");
+  const expensesContainer = document.getElementById("expenses-list");
+  if (addExpenseButton && expensesContainer) {
+    addExpenseButton.addEventListener("click", () => {
+      expensesContainer.appendChild(createExpenseRow());
+      calculateAndRender();
+    });
+  }
+
+  ensureAtLeastOneExpenseRow();
   calculateAndRender();
 });
-

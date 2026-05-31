@@ -1,252 +1,254 @@
 <!doctype html>
 <html lang="fr">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Simulateur PEA + Compte Titres</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="css/style.css" />
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    </head>
-    <body>
-        <button id="theme-toggle" class="theme-toggle" aria-label="Basculer le thème">
-            <span class="theme-icon sun">☀️</span>
-            <span class="theme-icon moon">🌙</span>
-        </button>
-        <div class="container">
-            <h1>💼 Simulateur PEA + Compte Titres</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulateur PEA + Compte Titres</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <button id="theme-toggle" class="theme-toggle" aria-label="Basculer le thème">
+      <span class="theme-icon sun">☀️</span>
+      <span class="theme-icon moon">🌙</span>
+    </button>
 
-            <!-- Section PEA -->
-            <div class="form-section">
-                <h2 class="section-title">📊 Paramètres de base</h2>
+    <div class="container">
+      <h1>Simulateur PEA + Compte Titres</h1>
 
-                <div class="form-group">
-                    <label>💰 Versement initial (€)</label>
-                    <input type="number" id="initial" placeholder="Ex: 10000" />
-                </div>
+      <div class="form-section">
+        <h2 class="section-title">Paramètres de base</h2>
 
-                <div class="form-group">
-                    <label>📅 Versement annuel (€)</label>
-                    <input
-                        type="number"
-                        id="annual-contribution"
-                        placeholder="Ex: 6000"
-                    />
-                </div>
-
-                <div class="form-group">
-                    <label>⏰ Durée de versement (années)</label>
-                    <input
-                        type="number"
-                        id="contributing-years"
-                        placeholder="Ex: 20"
-                    />
-                </div>
-
-                <div class="form-group">
-                    <label>🎂 Âge actuel</label>
-                    <input
-                        type="number"
-                        id="starting-age"
-                        placeholder="Ex: 30"
-                    />
-                </div>
-
-                <div class="form-group">
-                    <label>📈 Rendement annuel (%)</label>
-                    <input
-                        type="number"
-                        id="return"
-                        placeholder="Ex: 7"
-                        step="0.1"
-                    />
-                </div>
-            </div>
-
-            <!-- Section Retraite -->
-            <div class="form-section">
-                <h2 class="section-title">💵 Retraits à la retraite</h2>
-
-                <div class="form-group">
-                    <label>🏦 Retrait annuel PEA (€)</label>
-                    <input
-                        type="number"
-                        id="pea-withdrawal"
-                        placeholder="Ex: 12000"
-                    />
-                </div>
-
-                <div class="form-group">
-                    <label>📊 Retrait annuel Compte Titres (€)</label>
-                    <input
-                        type="number"
-                        id="ct-withdrawal"
-                        placeholder="Ex: 0"
-                    />
-                </div>
-
-                <p class="info-tip success-tip">
-                    💡 <strong>Conseil</strong> : Priorisez le PEA (17.2%
-                    d'impôt) plutôt que le Compte Titres (30% d'impôt) pour
-                    optimiser vos impôts.
-                </p>
-            </div>
-
-            <!-- Section Compte Titres -->
-            <div class="form-section">
-                <h2 class="section-title">
-                    📈 Compte Titres (automatique après PEA)
-                </h2>
-
-                <p class="info-tip info-tip-cyan">
-                    ✨ Une fois le plafond PEA atteint (150 000€) ou les
-                    versements terminés, vos versements continueront
-                    automatiquement sur le Compte Titres.
-                </p>
-
-                <div class="form-group">
-                    <label>📊 Rendement annuel Compte Titres (%)</label>
-                    <input
-                        type="number"
-                        id="ct-return"
-                        placeholder="Ex: 7"
-                        step="0.1"
-                        value="7"
-                    />
-                </div>
-            </div>
-
-            <!-- Section Taux d'imposition -->
-            <div class="form-section">
-                <h2 class="section-title">📋 Taux d'imposition (France)</h2>
-
-                <div class="tax-grid">
-                    <div class="tax-card tax-card-pea">
-                        <h4>💼 PEA (après 5 ans)</h4>
-                        <p class="tax-rate">
-                            <strong>Imposition au retrait : 17.2%</strong>
-                        </p>
-                        <p class="tax-details">
-                            • <strong>Pas d'impôt pendant la détention</strong><br />
-                            • 17.2% Prélèvements sociaux au retrait<br />
-                            • 0% Impôt sur le revenu (exonéré)<br />
-                            • Uniquement sur la part de plus-value
-                        </p>
-                    </div>
-
-                    <div class="tax-card tax-card-cto">
-                        <h4>📈 Compte Titres</h4>
-                        <p class="tax-rate">
-                            <strong>Imposition au retrait : 30%</strong>
-                        </p>
-                        <p class="tax-details">
-                            • <strong>Pas d'impôt pendant la détention</strong><br />
-                            • 30% Flat tax au retrait (17.2% + 12.8%)<br />
-                            • Uniquement sur la part de plus-value<br />
-                            • Option barème progressif possible
-                        </p>
-                    </div>
-                </div>
-
-                <p class="warning-text">
-                    ⚠️ Les montants affichés sont
-                    <strong>bruts (avant impôts)</strong>. L'imposition (17.2%
-                    PEA / 30% CT) est appliquée uniquement sur les plus-values
-                    au moment des retraits.
-                </p>
-            </div>
-
-            <!-- Résultats -->
-            <div class="result">
-                <h2>🎯 Valeur à la retraite</h2>
-                <p id="result">0 €</p>
-            </div>
-
-            <div id="cap-warning" class="cap-warning"></div>
-
-            <!-- Tableaux PEA et CTO côte à côte -->
-            <div class="tables-row">
-                <!-- Tableau PEA -->
-                <div class="table-container-half">
-                    <h3>💼 PEA - Détails année par année</h3>
-                    <table id="pea-table">
-                        <thead>
-                            <tr>
-                                <th>Âge</th>
-                                <th>Phase</th>
-                                <th>Valeur PEA</th>
-                                <th>Versement PEA</th>
-                                <th>Total versé PEA</th>
-                                <th>Gain annuel</th>
-                                <th>Gain cumulé</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pea-data"></tbody>
-                    </table>
-                </div>
-
-                <!-- Tableau CTO -->
-                <div class="table-container-half">
-                    <h3>📈 Compte Titres - Détails année par année</h3>
-                    <table id="cto-table">
-                        <thead>
-                            <tr>
-                                <th>Âge</th>
-                                <th>Phase</th>
-                                <th>Valeur CTO</th>
-                                <th>Versement CTO</th>
-                                <th>Total versé CTO</th>
-                                <th>Gain annuel</th>
-                                <th>Gain cumulé</th>
-                            </tr>
-                        </thead>
-                        <tbody id="cto-data"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Tableau Versements -->
-            <div class="table-container">
-                <h3>💰 Versements après imposition (retraite)</h3>
-                <table id="withdrawals-table">
-                    <thead>
-                        <tr>
-                            <th>Âge</th>
-                            <th>Versement net PEA</th>
-                            <th>Impôts PEA</th>
-                            <th>Versement net CTO</th>
-                            <th>Impôts CTO</th>
-                            <th>Total net (PEA + CTO)</th>
-                            <th>Total impôts</th>
-                        </tr>
-                    </thead>
-                    <tbody id="withdrawals-data"></tbody>
-                </table>
-            </div>
-
-            <!-- Graphique -->
-            <div class="chart-container">
-                <canvas id="chart"></canvas>
-            </div>
+        <div class="form-group">
+          <label for="initial">Versement initial (€)</label>
+          <input type="number" id="initial" placeholder="Ex : 10 000" min="0" step="100" />
         </div>
 
-        <script>
-            // Theme Toggle - Style Only
-            (function() {
-                const toggle = document.getElementById('theme-toggle');
-                const savedTheme = localStorage.getItem('theme') || 'dark';
-                document.documentElement.setAttribute('data-theme', savedTheme);
-                
-                toggle.addEventListener('click', function() {
-                    const current = document.documentElement.getAttribute('data-theme');
-                    const next = current === 'dark' ? 'light' : 'dark';
-                    document.documentElement.setAttribute('data-theme', next);
-                    localStorage.setItem('theme', next);
-                });
-            })();
-        </script>
-        <script src="js/app.js"></script>
-    </body>
+        <div class="form-group">
+          <label for="annual-contribution">Versement annuel (€)</label>
+          <input
+            type="number"
+            id="annual-contribution"
+            placeholder="Ex : 6 000"
+            min="0"
+            step="100"
+          />
+          <label class="checkbox-row" for="use-available-savings">
+            <input type="checkbox" id="use-available-savings" />
+            Utiliser automatiquement l’épargne disponible (calculée ci-dessous)
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label for="contributing-years">Durée de versement (années)</label>
+          <input type="number" id="contributing-years" placeholder="Ex : 20" min="0" step="1" />
+        </div>
+
+        <div class="form-group">
+          <label for="starting-age">Âge actuel</label>
+          <input type="number" id="starting-age" placeholder="Ex : 30" min="0" step="1" />
+        </div>
+
+        <div class="form-group">
+          <label for="return">Rendement annuel PEA (%)</label>
+          <input type="number" id="return" placeholder="Ex : 7" step="0.1" />
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="section-title">Revenus et dépenses</h2>
+
+        <p class="info-tip info-tip-cyan">
+          Objectif : estimer l’épargne annuelle disponible à partir de votre salaire brut et de
+          vos dépenses annuelles.
+        </p>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="gross-salary">Salaire brut annuel (€)</label>
+            <input type="number" id="gross-salary" placeholder="Ex : 45 000" min="0" step="100" />
+          </div>
+
+          <div class="form-group">
+            <label for="net-rate">Net estimé (% du brut)</label>
+            <input type="number" id="net-rate" value="70" min="0" max="100" step="0.1" />
+          </div>
+        </div>
+
+        <div class="expenses-head">
+          <h3 class="subsection-title">Dépenses annuelles</h3>
+          <button id="add-expense" class="btn btn-secondary" type="button">+ Ajouter</button>
+        </div>
+
+        <div id="expenses-list" class="expenses-list" aria-label="Liste des dépenses"></div>
+
+        <div class="income-summary" aria-label="Résumé revenus et dépenses">
+          <div class="summary-item">
+            <div class="summary-label">Revenu net estimé</div>
+            <div class="summary-value" id="net-income">0 €</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">Total dépenses</div>
+            <div class="summary-value" id="expenses-total">0 €</div>
+          </div>
+          <div class="summary-item summary-highlight">
+            <div class="summary-label">Épargne annuelle disponible</div>
+            <div class="summary-value" id="available-savings">0 €</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="section-title">Retraits à la retraite</h2>
+
+        <div class="form-group">
+          <label for="pea-withdrawal">Retrait annuel PEA (€)</label>
+          <input type="number" id="pea-withdrawal" placeholder="Ex : 12 000" min="0" step="100" />
+        </div>
+
+        <div class="form-group">
+          <label for="ct-withdrawal">Retrait annuel CTO (€)</label>
+          <input type="number" id="ct-withdrawal" placeholder="Ex : 0" min="0" step="100" />
+        </div>
+
+        <p class="info-tip success-tip">
+          Conseil : en pratique, on privilégie souvent le PEA (17,2% sur la part de plus-value)
+          plutôt que le CTO (30% sur la part de plus-value), selon votre situation.
+        </p>
+      </div>
+
+      <div class="form-section">
+        <h2 class="section-title">Compte Titres (CTO)</h2>
+
+        <p class="info-tip info-tip-cyan">
+          Une fois le plafond PEA atteint (150 000 € de versements), le surplus de versement part
+          automatiquement sur le CTO.
+        </p>
+
+        <div class="form-group">
+          <label for="ct-return">Rendement annuel CTO (%)</label>
+          <input type="number" id="ct-return" placeholder="Ex : 7" step="0.1" value="7" />
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="section-title">Fiscalité (hypothèse simplifiée)</h2>
+
+        <div class="tax-grid">
+          <div class="tax-card tax-card-pea">
+            <h4>PEA (après 5 ans)</h4>
+            <p class="tax-rate"><strong>Imposition au retrait : 17,2%</strong></p>
+            <p class="tax-details">
+              • Pas d’impôt pendant la détention<br />
+              • Impôt appliqué uniquement sur la part de plus-value retirée
+            </p>
+          </div>
+
+          <div class="tax-card tax-card-cto">
+            <h4>Compte Titres</h4>
+            <p class="tax-rate"><strong>Imposition au retrait : 30%</strong></p>
+            <p class="tax-details">
+              • Pas d’impôt pendant la détention<br />
+              • Impôt appliqué uniquement sur la part de plus-value retirée
+            </p>
+          </div>
+        </div>
+
+        <p class="warning-text">
+          Les montants affichés sont <strong>bruts</strong> (avant impôts). Les impôts ci-dessus
+          sont appliqués uniquement sur les plus-values au moment des retraits (modèle simplifié).
+        </p>
+      </div>
+
+      <div class="result">
+        <h2>Valeur à la retraite</h2>
+        <p id="result">0 €</p>
+      </div>
+
+      <div id="cap-warning" class="cap-warning"></div>
+
+      <div class="tables-row">
+        <div class="table-container-half">
+          <h3>PEA — détails année par année</h3>
+          <table id="pea-table">
+            <thead>
+              <tr>
+                <th>Âge</th>
+                <th>Phase</th>
+                <th>Valeur PEA</th>
+                <th>Versement PEA</th>
+                <th>Total versé PEA</th>
+                <th>Gain annuel</th>
+                <th>Gain cumulé</th>
+              </tr>
+            </thead>
+            <tbody id="pea-data"></tbody>
+          </table>
+        </div>
+
+        <div class="table-container-half">
+          <h3>CTO — détails année par année</h3>
+          <table id="cto-table">
+            <thead>
+              <tr>
+                <th>Âge</th>
+                <th>Phase</th>
+                <th>Valeur CTO</th>
+                <th>Versement CTO</th>
+                <th>Total versé CTO</th>
+                <th>Gain annuel</th>
+                <th>Gain cumulé</th>
+              </tr>
+            </thead>
+            <tbody id="cto-data"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <h3>Retraits après impôts (retraite)</h3>
+        <table id="withdrawals-table">
+          <thead>
+            <tr>
+              <th>Âge</th>
+              <th>Retrait net PEA</th>
+              <th>Impôts PEA</th>
+              <th>Retrait net CTO</th>
+              <th>Impôts CTO</th>
+              <th>Total net (PEA + CTO)</th>
+              <th>Total impôts</th>
+            </tr>
+          </thead>
+          <tbody id="withdrawals-data"></tbody>
+        </table>
+      </div>
+
+      <div class="chart-container">
+        <canvas id="chart"></canvas>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const toggle = document.getElementById("theme-toggle");
+        const savedTheme = localStorage.getItem("theme") || "dark";
+        document.documentElement.setAttribute("data-theme", savedTheme);
+
+        toggle.addEventListener("click", function () {
+          const current = document.documentElement.getAttribute("data-theme");
+          const next = current === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", next);
+          localStorage.setItem("theme", next);
+        });
+      })();
+    </script>
+    <script src="js/app.js"></script>
+  </body>
 </html>
+
