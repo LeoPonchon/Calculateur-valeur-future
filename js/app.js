@@ -37,6 +37,8 @@ function formatMoney(amount) {
 function readInputs() {
   const useAvailableSavings =
     document.getElementById("use-available-savings")?.checked ?? false;
+  const useAutoRetirementAge =
+    document.getElementById("use-auto-retirement-age")?.checked ?? true;
 
   const initial = clampNumber(document.getElementById("initial").value, {
     min: 0,
@@ -50,6 +52,14 @@ function readInputs() {
   );
   const startingAge = Math.floor(
     clampNumber(document.getElementById("starting-age").value, { min: 0 }),
+  );
+  const retirementAgeManual = Math.floor(
+    clampNumber(document.getElementById("retirement-age")?.value ?? 0, { min: 0 }),
+  );
+  const retirementAgeAuto = startingAge + contributingYears;
+  const retirementAge = Math.max(
+    startingAge,
+    useAutoRetirementAge ? retirementAgeAuto : retirementAgeManual,
   );
 
   const peaWithdrawalAmount = clampNumber(
@@ -96,6 +106,8 @@ function readInputs() {
     annualContribution,
     contributingYears,
     startingAge,
+    retirementAge,
+    useAutoRetirementAge,
     peaWithdrawalAmount,
     ctoWithdrawalAmount,
     peaRate: peaRatePercent / 100,
@@ -134,12 +146,14 @@ function simulate({
   annualContribution,
   contributingYears,
   startingAge,
+  retirementAge,
   peaWithdrawalAmount,
   ctoWithdrawalAmount,
   peaRate,
   ctoRate,
 }) {
-  const retirementAge = startingAge + contributingYears;
+  const contributionEndAge = startingAge + contributingYears;
+  const retirementStartAge = Math.max(startingAge, retirementAge);
 
   let age = startingAge;
 
@@ -178,14 +192,17 @@ function simulate({
   }
 
   // Phase 1 : accumulation (aucune fiscalité appliquée ici)
-  while (age < retirementAge) {
+  while (age < retirementStartAge) {
     const peaGain = peaBalance * peaRate;
     const ctoGain = ctoBalance * ctoRate;
 
-    const allocation = allocateToPeaAndCto({
-      desiredContribution: annualContribution,
-      peaContributed,
-    });
+    const shouldContribute = age < contributionEndAge;
+    const allocation = shouldContribute
+      ? allocateToPeaAndCto({
+          desiredContribution: annualContribution,
+          peaContributed,
+        })
+      : { toPea: 0, toCto: 0, remainingPeaCap: Math.max(0, PEA_CONTRIBUTION_CAP_EUR - peaContributed) };
 
     if (allocation.toCto > 0 && capReachedAge === null) {
       capReachedAge = age + 1;
@@ -204,7 +221,7 @@ function simulate({
 
     yearlyData.push({
       age,
-      phase: "Accumulation",
+      phase: shouldContribute ? "Accumulation" : "Attente",
       balance: peaBalance,
       contributed: peaContributed,
       actualContribution: allocation.toPea,
@@ -273,12 +290,13 @@ function simulate({
   }
 
   return {
-    retirementAge,
+    retirementAge: retirementStartAge,
     retirementYears,
     valueAtRetirement,
-    peaValueAtRetirement: yearlyData.find((d) => d.age === retirementAge)?.balance ?? peaBalance,
+    peaValueAtRetirement:
+      yearlyData.find((d) => d.age === retirementStartAge)?.balance ?? peaBalance,
     ctoValueAtRetirement:
-      yearlyData.find((d) => d.age === retirementAge)?.ctBalance ?? ctoBalance,
+      yearlyData.find((d) => d.age === retirementStartAge)?.ctBalance ?? ctoBalance,
     peaContributed,
     ctoContributed,
     totalTaxes: totalPeaTaxes + totalCtoTaxes,
@@ -438,7 +456,7 @@ function displayPEATable(yearlyData) {
     const totalGain = data.balance - data.contributed;
 
     const phaseClass =
-      data.phase === "Accumulation" ? "phase-accumulation" : "phase-retirement";
+      data.phase === "Retraite" ? "phase-retirement" : "phase-accumulation";
 
     row.innerHTML = `
       <td>${data.age} ans</td>
@@ -473,7 +491,7 @@ function displayCTOTable(yearlyData) {
     const totalGain = data.ctBalance - data.ctContributed;
 
     const phaseClass =
-      data.phase === "Accumulation" ? "phase-accumulation" : "phase-retirement";
+      data.phase === "Retraite" ? "phase-retirement" : "phase-accumulation";
 
     row.innerHTML = `
       <td>${data.age} ans</td>
@@ -534,6 +552,7 @@ function calculateAndRender() {
   displayWithdrawalsTable(simulation.yearlyData);
 
   syncAnnualContributionUI(inputs);
+  syncRetirementAgeUI(inputs);
   saveState();
 }
 
@@ -628,6 +647,37 @@ function syncAnnualContributionUI({ useAvailableSavings, availableSavings }) {
   }
 }
 
+function syncRetirementAgeUI({ useAutoRetirementAge }) {
+  const retirementAgeEl = document.getElementById("retirement-age");
+  const startingAgeEl = document.getElementById("starting-age");
+  const contributingYearsEl = document.getElementById("contributing-years");
+  if (!retirementAgeEl || !startingAgeEl || !contributingYearsEl) return;
+
+  retirementAgeEl.disabled = useAutoRetirementAge;
+  retirementAgeEl.classList.toggle("is-disabled", useAutoRetirementAge);
+
+  if (useAutoRetirementAge) {
+    const startingAge = Math.floor(clampNumber(startingAgeEl.value, { min: 0 }));
+    const years = Math.floor(clampNumber(contributingYearsEl.value, { min: 0 }));
+    retirementAgeEl.value = String(startingAge + years);
+  }
+}
+
+function syncWithdrawalPair({ annualId, monthlyId }) {
+  const annualEl = document.getElementById(annualId);
+  const monthlyEl = document.getElementById(monthlyId);
+  if (!annualEl || !monthlyEl) return;
+
+  annualEl.addEventListener("input", () => {
+    const annual = clampNumber(annualEl.value, { min: 0 });
+    monthlyEl.value = String(yearToMonth(annual));
+  });
+  monthlyEl.addEventListener("input", () => {
+    const monthly = clampNumber(monthlyEl.value, { min: 0 });
+    annualEl.value = String(monthToYear(monthly));
+  });
+}
+
 function saveState() {
   const state = {
     theme: document.documentElement.getAttribute("data-theme") || "dark",
@@ -636,9 +686,13 @@ function saveState() {
       annualContribution: document.getElementById("annual-contribution")?.value ?? "",
       contributingYears: document.getElementById("contributing-years")?.value ?? "",
       startingAge: document.getElementById("starting-age")?.value ?? "",
+      retirementAge: document.getElementById("retirement-age")?.value ?? "",
+      useAutoRetirementAge: document.getElementById("use-auto-retirement-age")?.checked ?? true,
       peaReturn: document.getElementById("return")?.value ?? "",
       peaWithdrawal: document.getElementById("pea-withdrawal")?.value ?? "",
+      peaWithdrawalMonthly: document.getElementById("pea-withdrawal-monthly")?.value ?? "",
       ctoWithdrawal: document.getElementById("ct-withdrawal")?.value ?? "",
+      ctoWithdrawalMonthly: document.getElementById("ct-withdrawal-monthly")?.value ?? "",
       ctoReturn: document.getElementById("ct-return")?.value ?? "7",
       grossSalary: document.getElementById("gross-salary")?.value ?? "",
       grossSalaryMonthly: document.getElementById("gross-salary-monthly")?.value ?? "",
@@ -674,9 +728,12 @@ function restoreState() {
       setValue("annual-contribution", state.values.annualContribution);
       setValue("contributing-years", state.values.contributingYears);
       setValue("starting-age", state.values.startingAge);
+      setValue("retirement-age", state.values.retirementAge);
       setValue("return", state.values.peaReturn);
       setValue("pea-withdrawal", state.values.peaWithdrawal);
+      setValue("pea-withdrawal-monthly", state.values.peaWithdrawalMonthly);
       setValue("ct-withdrawal", state.values.ctoWithdrawal);
+      setValue("ct-withdrawal-monthly", state.values.ctoWithdrawalMonthly);
       setValue("ct-return", state.values.ctoReturn);
       setValue("gross-salary", state.values.grossSalary);
       setValue("gross-salary-monthly", state.values.grossSalaryMonthly);
@@ -684,6 +741,13 @@ function restoreState() {
 
       const checkbox = document.getElementById("use-available-savings");
       if (checkbox) checkbox.checked = Boolean(state.values.useAvailableSavings);
+
+      const retirementCheckbox = document.getElementById("use-auto-retirement-age");
+      if (retirementCheckbox)
+        retirementCheckbox.checked =
+          state.values.useAutoRetirementAge === undefined
+            ? true
+            : Boolean(state.values.useAutoRetirementAge);
     }
 
     const expensesContainer = document.getElementById("expenses-list");
@@ -738,6 +802,8 @@ function exportConfigMarkdown() {
   lines.push(`- use_available_savings: ${inputs.useAvailableSavings ? "true" : "false"}`);
   lines.push(`- contributing_years: ${Math.round(inputs.contributingYears)}`);
   lines.push(`- starting_age: ${Math.round(inputs.startingAge)}`);
+  lines.push(`- retirement_age: ${Math.round(inputs.retirementAge)}`);
+  lines.push(`- use_auto_retirement_age: ${inputs.useAutoRetirementAge ? "true" : "false"}`);
   lines.push(`- pea_return_percent: ${Number.isFinite(inputs.peaRate) ? inputs.peaRate * 100 : 0}`);
   lines.push(`- cto_return_percent: ${Number.isFinite(inputs.ctoRate) ? inputs.ctoRate * 100 : 0}`);
   lines.push(`- pea_withdrawal: ${Math.round(inputs.peaWithdrawalAmount)}`);
@@ -838,10 +904,13 @@ function applyImportedConfig(config) {
   setValue("annual-contribution", parseNumberLoose(values.annual_contribution));
   setValue("contributing-years", Math.floor(parseNumberLoose(values.contributing_years)));
   setValue("starting-age", Math.floor(parseNumberLoose(values.starting_age)));
+  setValue("retirement-age", Math.floor(parseNumberLoose(values.retirement_age)));
   setValue("return", parseNumberLoose(values.pea_return_percent));
   setValue("ct-return", parseNumberLoose(values.cto_return_percent || values.ct_return_percent));
   setValue("pea-withdrawal", parseNumberLoose(values.pea_withdrawal));
+  setValue("pea-withdrawal-monthly", yearToMonth(parseNumberLoose(values.pea_withdrawal)));
   setValue("ct-withdrawal", parseNumberLoose(values.cto_withdrawal));
+  setValue("ct-withdrawal-monthly", yearToMonth(parseNumberLoose(values.cto_withdrawal)));
   setValue("gross-salary", parseNumberLoose(values.gross_salary));
   setValue("gross-salary-monthly", yearToMonth(parseNumberLoose(values.gross_salary)));
   setValue("net-rate", parseNumberLoose(values.net_rate_percent));
@@ -849,6 +918,14 @@ function applyImportedConfig(config) {
   const useSavings = String(values.use_available_savings || "").toLowerCase();
   const checkbox = document.getElementById("use-available-savings");
   if (checkbox) checkbox.checked = useSavings === "true" || useSavings === "1" || useSavings === "yes";
+
+  const autoRetirement = String(values.use_auto_retirement_age || "").toLowerCase();
+  const retirementCheckbox = document.getElementById("use-auto-retirement-age");
+  if (retirementCheckbox)
+    retirementCheckbox.checked =
+      autoRetirement === ""
+        ? true
+        : autoRetirement === "true" || autoRetirement === "1" || autoRetirement === "yes";
 
   const expensesContainer = document.getElementById("expenses-list");
   if (expensesContainer) {
@@ -878,23 +955,53 @@ function downloadTextFile({ filename, text }) {
   URL.revokeObjectURL(url);
 }
 
+function normalizeWithdrawalFields() {
+  const pairs = [
+    { annualId: "pea-withdrawal", monthlyId: "pea-withdrawal-monthly" },
+    { annualId: "ct-withdrawal", monthlyId: "ct-withdrawal-monthly" },
+  ];
+
+  for (const pair of pairs) {
+    const annualEl = document.getElementById(pair.annualId);
+    const monthlyEl = document.getElementById(pair.monthlyId);
+    if (!annualEl || !monthlyEl) continue;
+
+    const annual = clampNumber(annualEl.value, { min: 0 });
+    const monthly = clampNumber(monthlyEl.value, { min: 0 });
+
+    if (annual > 0 && monthly === 0) {
+      monthlyEl.value = String(yearToMonth(annual));
+      continue;
+    }
+    if (monthly > 0 && annual === 0) {
+      annualEl.value = String(monthToYear(monthly));
+    }
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   restoreState();
   normalizeSalaryFields();
+  normalizeWithdrawalFields();
+  syncRetirementAgeUI({ useAutoRetirementAge: document.getElementById("use-auto-retirement-age")?.checked ?? true });
 
   const inputIds = [
     "initial",
     "annual-contribution",
     "contributing-years",
     "pea-withdrawal",
+    "pea-withdrawal-monthly",
     "ct-withdrawal",
+    "ct-withdrawal-monthly",
     "starting-age",
+    "retirement-age",
     "return",
     "ct-return",
     "gross-salary",
     "gross-salary-monthly",
     "net-rate",
     "use-available-savings",
+    "use-auto-retirement-age",
   ];
 
   inputIds.forEach((id) => {
@@ -925,6 +1032,15 @@ document.addEventListener("DOMContentLoaded", () => {
       salaryAnnualEl.value = String(monthToYear(monthly));
     });
   }
+
+  syncWithdrawalPair({
+    annualId: "pea-withdrawal",
+    monthlyId: "pea-withdrawal-monthly",
+  });
+  syncWithdrawalPair({
+    annualId: "ct-withdrawal",
+    monthlyId: "ct-withdrawal-monthly",
+  });
 
   const exportButton = document.getElementById("export-config");
   const downloadButton = document.getElementById("download-config");
