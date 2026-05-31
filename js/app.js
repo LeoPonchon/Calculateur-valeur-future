@@ -639,6 +639,161 @@ function restoreState() {
   }
 }
 
+function exportConfigMarkdown() {
+  const inputs = readInputs();
+  const expenses = Array.from(document.querySelectorAll("[data-expense-row]")).map((row) => ({
+    label: (row.querySelector("[data-expense-label]")?.value ?? "").trim(),
+    amount: clampNumber(row.querySelector("[data-expense-amount]")?.value ?? 0, { min: 0 }),
+  }));
+
+  const lines = [];
+  lines.push("# Configuration — Simulateur PEA + CTO");
+  lines.push("");
+  lines.push("## Paramètres");
+  lines.push(`- initial: ${Math.round(inputs.initial)}`);
+  lines.push(`- annual_contribution: ${Math.round(inputs.useAvailableSavings ? 0 : inputs.annualContribution)}`);
+  lines.push(`- use_available_savings: ${inputs.useAvailableSavings ? "true" : "false"}`);
+  lines.push(`- contributing_years: ${Math.round(inputs.contributingYears)}`);
+  lines.push(`- starting_age: ${Math.round(inputs.startingAge)}`);
+  lines.push(`- pea_return_percent: ${Number.isFinite(inputs.peaRate) ? inputs.peaRate * 100 : 0}`);
+  lines.push(`- cto_return_percent: ${Number.isFinite(inputs.ctoRate) ? inputs.ctoRate * 100 : 0}`);
+  lines.push(`- pea_withdrawal: ${Math.round(inputs.peaWithdrawalAmount)}`);
+  lines.push(`- cto_withdrawal: ${Math.round(inputs.ctoWithdrawalAmount)}`);
+  lines.push("");
+  lines.push("## Revenus");
+  lines.push(`- gross_salary: ${Math.round(inputs.grossSalary || 0)}`);
+  lines.push(`- net_rate_percent: ${Number(inputs.netRatePercent || 0)}`);
+  lines.push("");
+  lines.push("## Dépenses annuelles");
+
+  const nonEmptyExpenses = expenses.filter((e) => e.label || e.amount > 0);
+  if (nonEmptyExpenses.length === 0) {
+    lines.push("- \"Dépenses\": 0");
+  } else {
+    nonEmptyExpenses.forEach((e) => {
+      const safeLabel = (e.label || "Dépense").replace(/"/g, '\\"');
+      lines.push(`- "${safeLabel}": ${Math.round(e.amount)}`);
+    });
+  }
+
+  lines.push("");
+  lines.push("<!-- Collez ce fichier dans l'app puis cliquez sur “Importer”. -->");
+  lines.push("");
+
+  return lines.join("\n");
+}
+
+function parseMarkdownConfig(markdown) {
+  const config = {
+    values: {},
+    expenses: [],
+  };
+
+  const lines = String(markdown || "")
+    .replace(/\r\n/g, "\n")
+    .split("\n");
+
+  let inExpenses = false;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    if (line.startsWith("<!--")) continue;
+
+    if (/^##\s*dépenses annuelles/i.test(line)) {
+      inExpenses = true;
+      continue;
+    }
+    if (/^##\s+/i.test(line)) {
+      inExpenses = false;
+      continue;
+    }
+
+    if (!line.startsWith("-")) continue;
+
+    const content = line.replace(/^-+\s*/, "");
+
+    if (inExpenses) {
+      const expenseMatch = content.match(/^"?(.*?)"?\s*:\s*(.+)$/);
+      if (!expenseMatch) continue;
+      const label = expenseMatch[1].trim().replace(/\\"/g, '"');
+      const amount = parseNumberLoose(expenseMatch[2]);
+      config.expenses.push({ label, amount: Math.max(0, amount) });
+      continue;
+    }
+
+    const kvMatch = content.match(/^([a-zA-Z0-9_-]+)\s*:\s*(.+)$/);
+    if (!kvMatch) continue;
+    const key = kvMatch[1];
+    const value = kvMatch[2].trim();
+    config.values[key] = value;
+  }
+
+  return config;
+}
+
+function parseNumberLoose(value) {
+  const raw = String(value ?? "")
+    .trim()
+    .replace(/\s/g, "")
+    .replace(/€/g, "")
+    .replace(/,/g, ".");
+  const numberValue = Number(raw);
+  return Number.isFinite(numberValue) ? numberValue : 0;
+}
+
+function applyImportedConfig(config) {
+  const values = config?.values || {};
+
+  const setValue = (id, value) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = value ?? "";
+  };
+
+  setValue("initial", parseNumberLoose(values.initial));
+  setValue("annual-contribution", parseNumberLoose(values.annual_contribution));
+  setValue("contributing-years", Math.floor(parseNumberLoose(values.contributing_years)));
+  setValue("starting-age", Math.floor(parseNumberLoose(values.starting_age)));
+  setValue("return", parseNumberLoose(values.pea_return_percent));
+  setValue("ct-return", parseNumberLoose(values.cto_return_percent || values.ct_return_percent));
+  setValue("pea-withdrawal", parseNumberLoose(values.pea_withdrawal));
+  setValue("ct-withdrawal", parseNumberLoose(values.cto_withdrawal));
+  setValue("gross-salary", parseNumberLoose(values.gross_salary));
+  setValue("net-rate", parseNumberLoose(values.net_rate_percent));
+
+  const useSavings = String(values.use_available_savings || "").toLowerCase();
+  const checkbox = document.getElementById("use-available-savings");
+  if (checkbox) checkbox.checked = useSavings === "true" || useSavings === "1" || useSavings === "yes";
+
+  const expensesContainer = document.getElementById("expenses-list");
+  if (expensesContainer) {
+    expensesContainer.innerHTML = "";
+    const expenses = Array.isArray(config.expenses) ? config.expenses : [];
+    if (expenses.length > 0) {
+      expenses.forEach((e) =>
+        expensesContainer.appendChild(
+          createExpenseRow({ label: e.label || "", amount: Number(e.amount) || 0 }),
+        ),
+      );
+    }
+  }
+
+  ensureAtLeastOneExpenseRow();
+}
+
+function downloadTextFile({ filename, text }) {
+  const blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   restoreState();
 
@@ -669,6 +824,44 @@ document.addEventListener("DOMContentLoaded", () => {
     addExpenseButton.addEventListener("click", () => {
       expensesContainer.appendChild(createExpenseRow());
       calculateAndRender();
+    });
+  }
+
+  const exportButton = document.getElementById("export-config");
+  const downloadButton = document.getElementById("download-config");
+  const importButton = document.getElementById("import-config");
+  const configTextarea = document.getElementById("config-markdown");
+
+  if (exportButton && configTextarea) {
+    exportButton.addEventListener("click", async () => {
+      const md = exportConfigMarkdown();
+      configTextarea.value = md;
+      try {
+        await navigator.clipboard.writeText(md);
+      } catch {
+        // ignore (clipboard may be blocked)
+      }
+    });
+  }
+
+  if (downloadButton && configTextarea) {
+    downloadButton.addEventListener("click", () => {
+      const md = configTextarea.value?.trim() ? configTextarea.value : exportConfigMarkdown();
+      const now = new Date();
+      const stamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+        now.getDate(),
+      ).padStart(2, "0")}`;
+      downloadTextFile({ filename: `config-pea-cto-${stamp}.md`, text: md });
+    });
+  }
+
+  if (importButton && configTextarea) {
+    importButton.addEventListener("click", () => {
+      const md = configTextarea.value || "";
+      const parsed = parseMarkdownConfig(md);
+      applyImportedConfig(parsed);
+      calculateAndRender();
+      saveState();
     });
   }
 

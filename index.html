@@ -72,6 +72,32 @@
       </div>
 
       <div class="form-section">
+        <h2 class="section-title">Configuration</h2>
+
+        <p class="info-tip info-tip-cyan">
+          Exportez/importez vos paramètres (et vos dépenses) en Markdown pour sauvegarder ou partager des scénarios.
+        </p>
+
+        <details class="config-panel">
+          <summary>Exporter / Importer (Markdown)</summary>
+
+          <div class="config-actions">
+            <button id="export-config" class="btn" type="button">Exporter</button>
+            <button id="download-config" class="btn btn-secondary" type="button">Télécharger .md</button>
+            <button id="import-config" class="btn btn-secondary" type="button">Importer</button>
+          </div>
+
+          <label class="config-label" for="config-markdown">Configuration (Markdown)</label>
+          <textarea
+            id="config-markdown"
+            class="config-textarea"
+            rows="12"
+            placeholder="Cliquez sur “Exporter”, ou collez ici un Markdown puis cliquez sur “Importer”."
+          ></textarea>
+        </details>
+      </div>
+
+      <div class="form-section">
         <h2 class="section-title">Revenus et dépenses</h2>
 
         <p class="info-tip info-tip-cyan">
@@ -247,4 +273,3 @@
     <script src="js/app.js"></script>
   </body>
 </html>
-

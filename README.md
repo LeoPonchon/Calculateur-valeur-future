@@ -18,3 +18,7 @@ Simulateur statique (HTML/CSS/JS) pour estimer l'évolution d'un portefeuille en
 ## Lancer
 
 Ouvrir `index.html` dans un navigateur.
+
+## Export / import de configuration
+
+Dans l'onglet **Configuration**, vous pouvez exporter/importer vos paramètres (et vos dépenses) en **Markdown**.
