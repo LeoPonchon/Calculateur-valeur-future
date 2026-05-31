@@ -977,11 +977,13 @@ function exportConfigMarkdown() {
   }));
 
   const lines = [];
-  lines.push("# Configuration — Simulateur PEA + CTO");
+  lines.push("# Configuration - Simulateur PEA + CTO");
   lines.push("");
-  lines.push("## Paramètres");
+  lines.push("## Parametres");
+  lines.push(`- version: 1`);
+  lines.push(`- theme: ${document.documentElement.getAttribute("data-theme") || "dark"}`);
   lines.push(`- initial: ${Math.round(inputs.initial)}`);
-  lines.push(`- annual_contribution: ${Math.round(inputs.useAvailableSavings ? 0 : inputs.annualContribution)}`);
+  lines.push(`- annual_contribution: ${Math.round(inputs.annualContribution)}`);
   lines.push(`- use_available_savings: ${inputs.useAvailableSavings ? "true" : "false"}`);
   lines.push(`- contributing_years: ${Math.round(inputs.contributingYears)}`);
   lines.push(`- starting_age: ${Math.round(inputs.startingAge)}`);
@@ -996,20 +998,20 @@ function exportConfigMarkdown() {
   lines.push(`- gross_salary: ${Math.round(Math.max(inputs.grossSalary || 0, monthToYear(inputs.grossSalaryMonthly || 0)))}`);
   lines.push(`- net_rate_percent: ${Number(inputs.netRatePercent || 0)}`);
   lines.push("");
-  lines.push("## Dépenses annuelles");
+  lines.push("## Depenses annuelles");
 
   const nonEmptyExpenses = expenses.filter((e) => e.label || e.amount > 0);
   if (nonEmptyExpenses.length === 0) {
-    lines.push("- \"Dépenses\": 0");
+    lines.push("- \"Depenses\": 0");
   } else {
     nonEmptyExpenses.forEach((e) => {
-      const safeLabel = (e.label || "Dépense").replace(/"/g, '\\"');
+      const safeLabel = (e.label || "Depense").replace(/"/g, '\\"');
       lines.push(`- "${safeLabel}": ${Math.round(e.amount)}`);
     });
   }
 
   lines.push("");
-  lines.push("<!-- Collez ce fichier dans l'app puis cliquez sur “Importer”. -->");
+  lines.push("<!-- Collez ce fichier dans l'app puis cliquez sur \"Importer\". -->");
   lines.push("");
 
   return lines.join("\n");
@@ -1032,11 +1034,13 @@ function parseMarkdownConfig(markdown) {
     if (!line) continue;
     if (line.startsWith("<!--")) continue;
 
-    if (/^##\s*dépenses annuelles/i.test(line)) {
+    const normalizedHeader = stripDiacritics(line).toLowerCase();
+
+    if (normalizedHeader.startsWith("## depenses annuelles")) {
       inExpenses = true;
       continue;
     }
-    if (/^##\s+/i.test(line)) {
+    if (normalizedHeader.startsWith("## ")) {
       inExpenses = false;
       continue;
     }
@@ -1072,6 +1076,12 @@ function parseNumberLoose(value) {
     .replace(/,/g, ".");
   const numberValue = Number(raw);
   return Number.isFinite(numberValue) ? numberValue : 0;
+}
+
+function stripDiacritics(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 function applyImportedConfig(config) {
